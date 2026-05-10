@@ -1,0 +1,10 @@
+{
+  "name": "@invisement/editor-markdown",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "imports": {
+    "easymde": "https://esm.sh/easymde@2.18.0"
+  }
+}

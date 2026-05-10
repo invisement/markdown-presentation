@@ -1,16 +1,6 @@
-import EasyMDE from 'easymde';
+import { MarkdownEditor } from '@invisement/editor-markdown';
 import { marked } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
-
-// Load CodeMirror modes natively into the bundle for syntax highlighting in the editor
-import 'https://esm.sh/codemirror@5/mode/javascript/javascript.js';
-import 'https://esm.sh/codemirror@5/mode/css/css.js';
-import 'https://esm.sh/codemirror@5/mode/python/python.js';
-import 'https://esm.sh/codemirror@5/mode/xml/xml.js';
-import 'https://esm.sh/codemirror@5/mode/htmlmixed/htmlmixed.js';
-import 'https://esm.sh/codemirror@5/mode/shell/shell.js';
-
-import 'https://esm.sh/codemirror@5/mode/shell/shell.js';
 
 const renderer = new marked.Renderer();
 const originalImage = renderer.image.bind(renderer);
@@ -545,52 +535,31 @@ h3PageBreakCheckbox.addEventListener('change', (e) => {
     saveSettings();
 });
 
-let easyMDE = null;
+let editor = null;
 
 const toggleEditMode = () => {
     const isEditing = document.body.classList.toggle('editing');
     
     if (isEditing) {
-        if (!easyMDE) {
-            easyMDE = new EasyMDE({
-                element: document.getElementById('editor-textarea'),
-                spellChecker: false,
-                autofocus: true,
-                status: false,
-                toolbar: [
-                    "bold", "italic", "heading", "|", 
-                    "quote", "unordered-list", "ordered-list", "|", 
-                    "link", "image", "table", "|", 
-                    "guide"
-                ],
-                renderingConfig: {
-                    markedOptions: { sanitize: false }
-                }
-            });
-            
-            easyMDE.codemirror.on("change", () => {
-                const val = easyMDE.value();
-                currentMarkdownSource = val;
-                
-                // Debounce render to maintain performance
-                clearTimeout(window.renderTimeout);
-                window.renderTimeout = setTimeout(() => {
-                    renderMarkdown(val);
-                }, 300);
-            });
-            
-            // Add custom Cmd+S / Ctrl+S to save the file
-            easyMDE.codemirror.setOption("extraKeys", {
-                "Cmd-S": function(cm) { saveMarkdownFile(); },
-                "Ctrl-S": function(cm) { saveMarkdownFile(); }
+        if (!editor) {
+            editor = new MarkdownEditor();
+            editor.init(document.getElementById('editor-textarea'), {
+                onChange: (val) => {
+                    currentMarkdownSource = val;
+                    clearTimeout(window.renderTimeout);
+                    window.renderTimeout = setTimeout(() => {
+                        renderMarkdown(val);
+                    }, 300);
+                },
+                onSave: () => saveMarkdownFile()
             });
         }
         
-        easyMDE.value(currentMarkdownSource);
-        setTimeout(() => easyMDE.codemirror.refresh(), 10);
+        editor.setValue(currentMarkdownSource);
+        setTimeout(() => editor.refresh(), 10);
     } else {
-        if (easyMDE) {
-            currentMarkdownSource = easyMDE.value();
+        if (editor) {
+            currentMarkdownSource = editor.getValue();
             renderMarkdown(currentMarkdownSource);
         }
     }
@@ -603,7 +572,7 @@ const saveMarkdownFile = async () => {
     }
     try {
         const writable = await markdownFileHandle.createWritable();
-        await writable.write(easyMDE ? easyMDE.value() : currentMarkdownSource);
+        await writable.write(editor ? editor.getValue() : currentMarkdownSource);
         await writable.close();
         
         // Brief visual feedback

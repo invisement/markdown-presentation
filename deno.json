@@ -7,6 +7,7 @@
 	"imports": {
 		"@invisement/husk": "./husk/mod.ts",
 		"@invisement/husk/transpile-ui": "./husk/utils/transpile-ui.ts",
+		"@invisement/editor-markdown": "./editor-markdown/mod.ts",
 		"easymde": "https://esm.sh/easymde@2.18.0",
 		"marked": "https://esm.sh/marked@12.0.0?bundle",
 		"marked-gfm-heading-id": "https://esm.sh/marked-gfm-heading-id@3.1.2?bundle",
