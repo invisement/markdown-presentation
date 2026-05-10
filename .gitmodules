@@ -1,0 +1,3 @@
+[submodule "husk"]
+	path = husk
+	url = https://github.com/invisement/husk.git

@@ -1,6 +1,6 @@
 {
 	"name": "@invisement/markdown-presentation",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"tasks": {
 		"dev": "deno run -A server.ts --watch-ui",
 		"build": "deno run -A ./husk/utils/transpile-ui.ts",
