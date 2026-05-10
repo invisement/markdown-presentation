@@ -1,0 +1,439 @@
+/* =============================================================
+   Theme Variables
+   ============================================================= */
+
+:root {
+    --bg-color: rgb(245, 245, 245);
+    --text-color: #333333;
+    --header-color: #005cc5;
+    --code-bg-color: #ffffff;
+    --code-text-color: #24292e;
+}
+
+
+/* =============================================================
+   Base & Body
+   ============================================================= */
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: system-ui, sans-serif;
+    font-size: var(--base-font-size, 18px);
+    line-height: 1.5;
+    margin: 1em auto;
+    padding: 1em;
+}
+
+@media screen {
+    body {
+        max-width: 60em;
+    }
+}
+
+
+/* =============================================================
+   Headings
+   ============================================================= */
+
+h2 {
+    page-break-before: always;
+}
+
+
+h1,
+h2,
+h3 {
+    color: var(--header-color);
+    break-after: avoid-column;
+}
+
+h1,
+h6 {
+    text-align: center;
+}
+
+h1 {
+    padding-top: 5em;
+}
+
+ol,
+ul {
+    break-inside: avoid-column;
+}
+
+/* =============================================================
+   Code
+   ============================================================= */
+
+code {
+    font-family: monospace;
+    font-size: .9em;
+    background-color: var(--code-bg-color);
+}
+
+code>svg {
+    width: 100%;
+}
+
+pre {
+    font-size: .8em;
+    max-height: 40em;
+    line-height: 1em;
+    padding: 1em;
+    border-radius: 1em;
+    border: thin solid var(--header-color);
+    overflow: auto;
+    background-color: var(--code-bg-color);
+    color: var(--code-text-color);
+    break-inside: avoid-column;
+}
+
+
+/* =============================================================
+   Tables
+   ============================================================= */
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: smaller;
+    background-color: var(--code-bg-color);
+}
+
+th,
+td {
+    border-bottom: 1px solid var(--header-color);
+    padding: 0.2em 1em;
+}
+
+th {
+    font-weight: bold;
+    color: var(--header-color);
+    text-align: start;
+}
+
+
+/* =============================================================
+   Media & Figures
+   ============================================================= */
+
+svg,
+img {
+    display: block;
+}
+
+img,
+svg,
+figure,
+video {
+    max-height: calc(100% - 5em);
+    max-width: calc(100% - 3em);
+}
+
+pre,
+table,
+img,
+svg,
+figure {
+    break-inside: avoid;
+    margin-block: 1em;
+}
+
+[style*="column-count"]> :first-child {
+    margin-top: 0;
+}
+
+
+/* =============================================================
+   HR (column break)
+   ============================================================= */
+
+hr {
+    break-after: page;
+    border: none;
+    height: 0;
+    margin: 0;
+}
+
+
+/* =============================================================
+   Layout Helpers
+   ============================================================= */
+
+header,
+footer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+    width: stretch;
+    height: 6em;
+    position: absolute;
+    background: var(--bg-color);
+    left: 0;
+    right: 0;
+}
+
+header {
+    top: 0;
+}
+
+footer {
+    bottom: 0;
+}
+
+header>*,
+footer>* {
+    max-height: 100%;
+    margin: 0;
+}
+
+blockquote p:first-of-type::before {
+    content: "⚠ ";
+    font-size: 1.5em;
+}
+
+/* Mermaid Labels styling */
+.mermaid .nodeLabel,
+.mermaid .edgeLabel,
+.mermaid tspan {
+    color: var(--text-color) !important;
+    fill: var(--text-color) !important;
+}
+
+li>ol>li,
+li>ul>li {
+    font-size: smaller;
+}
+
+li {
+    line-height: 1.25em;
+    margin-bottom: 0.5em;
+}
+
+.left-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+    align-items: center;
+    font-size: smaller;
+}
+
+.left-right> :first-child {
+    flex: 1;
+}
+
+.left-right> :last-child {
+    flex: 2;
+}
+
+[style*="column-count"] {
+    font-size: smaller;
+}
+
+
+/* =============================================================
+   Controls UI
+   ============================================================= */
+
+#details {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: var(--bg-color);
+    padding: 0.5em;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    max-height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+#details details>*,
+#details>* {
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#details * {
+    cursor: pointer;
+    border: none;
+    line-height: 2em;
+    padding: 0;
+    margin: 0;
+
+}
+
+#details button {
+    text-align: left;
+    width: 100%;
+}
+
+#details :not(details):hover {
+    background-color: white;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, .5);
+}
+
+#details details {
+    padding-left: 1.5em;
+}
+
+#details details>summary {
+    margin-left: -1.5em;
+    opacity: 0.6;
+}
+
+#details details>summary::before {
+    content: "+ ";
+}
+
+#details details[open]>summary::before {
+    content: "− ";
+}
+
+.active {
+    background-color: white;
+}
+
+/* =============================================================
+   Present Mode
+   ============================================================= */
+
+body.presenting .page {
+    display: none;
+}
+
+body.presenting {
+    font-size: calc(var(--base-font-size, 18px) * 1.25);
+}
+
+body.presenting .page.slide-active {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    overflow: hidden;
+    background: var(--bg-color);
+    /*padding: 2em 2em;
+    box-sizing: border-box;*/
+    width: 100vw;
+    height: 100vh;
+}
+
+body.presenting h2 {
+    margin-top: 0.3em;
+    text-align: center;
+}
+
+body.presenting h3 {
+    margin-top: 0.2em;
+}
+
+
+.page {
+    padding: 2em;
+    box-sizing: border-box;
+}
+
+/* =============================================================
+   Print
+   ============================================================= */
+
+@page {
+    size: 1280px 820px;
+    margin: 0;
+}
+
+@media print {
+    body {
+        max-width: none !important;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-size: calc(var(--base-font-size, 18px) * 1.25) !important;
+    }
+
+    .page {
+        display: block;
+        page-break-before: always;
+        padding: 1em;
+    }
+
+    .page:first-child {
+        page-break-before: auto;
+    }
+
+    pre {
+        overflow: hidden;
+        max-height: 100%;
+    }
+
+
+    #details {
+        display: none;
+    }
+
+    h2 {
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    h3 {
+        margin-top: 0.5rem;
+    }
+}
+
+/* =============================================================
+   Edit Mode (EasyMDE)
+   ============================================================= */
+
+body.editing {
+    max-width: none !important;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+body.editing #app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+body.editing .EasyMDEContainer {
+    flex: 1;
+    height: 100%;
+    border-right: 2px solid var(--header-color);
+    background-color: var(--code-bg-color);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+body.editing .CodeMirror {
+    flex: 1;
+}
+
+body.editing #content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2em;
+    box-sizing: border-box;
+    background-color: var(--bg-color);
+}
+
+body.editing #details {
+    opacity: 0.8;
+}
+
+/* Hide EasyMDE's native preview side because we use #content */
+.editor-preview-side {
+    display: none !important;
+}
