@@ -39,9 +39,25 @@ A zero-install, Deno-powered markdown viewer for reading, presenting, and printi
 
 ## Deno Tasks
 
-- `deno task dev`: Starts the dev server with HMR-like UI transpilation.
+- `deno task dev`: Starts the dev server. Press `r` in the terminal to manually rebuild the UI.
 - `deno task build`: Transpiles the UI for production deployment.
 - `deno task standalone`: Bundles everything into `dist/markdown-presenter.html`.
+
+## Development (Husk Framework)
+
+This project uses **Husk**, a tiny standards-based framework.
+
+### Router Handlers
+Route handlers have been updated to a more robust signature:
+```typescript
+router.push("/api/greet/:name", async (params, req) => {
+  const { name } = params;
+  return { message: `Hello ${name}!` }; // Automatically served as JSON
+});
+```
+- **JSON Support**: Returning an object or array automatically sets `Content-Type: application/json`.
+- **Response Objects**: You can return a native `Response` object for full control.
+- **On-Demand Rebuild**: In dev mode, UI transpilation is "lazy". Simply **refresh your browser** to trigger a rebuild and see your latest changes.
 
 ## Writing Slides
 
@@ -57,6 +73,23 @@ Deploy the `ui-dist/` folder to any static host or use Deno Deploy.
 
 ### Standalone
 Run `deno task standalone` to produce a single ~5MB file that works entirely offline.
+
+## Troubleshooting
+
+### Address already in use (Port 8000)
+If you see an error like `AddrInUse: Address already in use`, it means a previous server instance is still running in the background.
+
+**Solution:**
+Use the `killport` utility (if you added it to your `.zshrc`):
+```bash
+killport 8000
+```
+
+**Manual (No Alias):**
+If you haven't set up the alias, use this command to find and forcefully kill the process:
+```bash
+lsof -ti:8000 | xargs sudo kill -9
+```
 
 ## Requirements
 

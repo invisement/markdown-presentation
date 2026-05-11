@@ -1,5 +1,4 @@
 import { Router } from "@invisement/husk";
-import { watchUI } from "@invisement/husk/transpile-ui";
 import {
 	importMapFile,
 	uiEntrypoints,
@@ -7,14 +6,15 @@ import {
 	uiSourceDir,
 } from "./config.ts";
 
-// if cli has --watch-ui serve dev raw files, otherwise serve prod files
-const isDev = Deno.args.includes("--watch-ui");
-const uiDir = isDev
-	? await watchUI(uiSourceDir, uiEntrypoints, importMapFile)
-	: uiOutDir;
-console.log("UI Out Directory is", uiDir);
-
 const router = new Router();
+
+// Auto-initialize UI (handles transpilation in dev mode)
+const uiDir = await router.initUI({
+	source: uiSourceDir,
+	entrypoints: uiEntrypoints,
+	output: uiOutDir,
+	importMap: importMapFile,
+});
 
 // Serve ui files
 router.push("/:path*", `${uiDir}/:path`);

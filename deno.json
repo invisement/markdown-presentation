@@ -1,10 +1,14 @@
 {
 	"name": "@invisement/markdown-presentation",
 	"version": "1.0.1",
+	"exports": {
+		".": "./server.ts"
+	},
 	"tasks": {
 		"dev": "deno run -A server.ts --watch-ui",
 		"build": "deno run -A ./husk/utils/transpile-ui.ts",
-		"standalone": "deno run -A ./husk/utils/build-standalone.ts"
+		"standalone": "deno run -A ./husk/utils/build-standalone.ts",
+		"deploy": "deno task build && deno run -A deploy.ts"
 	},
 	"imports": {
 		"@invisement/husk": "./husk/mod.ts",

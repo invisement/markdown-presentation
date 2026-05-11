@@ -39,20 +39,41 @@ digraph Architecture {
     node [shape=box, style=rounded, fontname="Helvetica", margin="0.2,0.1"];
     edge [fontname="Helvetica", fontsize=10, color="#555555"];
 
+    subgraph cluster_external {
+        label="External Dependencies";
+        style=dashed;
+        color="#888888";
+        JSR [label="JSR (@invisement/husk)"];
+        ESMSH [label="esm.sh (marked, mermaid, etc)"];
+    }
+
+    subgraph cluster_hosting {
+        label="Deno Deploy (Cloud)";
+        style=filled;
+        color="#f0f0f0";
+        Server [label="Deno Server (server.ts)\nDynamic Transpiler"];
+    }
+
     subgraph cluster_frontend {
         label="Frontend (Client Browser)";
         style=dashed;
         color="#888888";
         
         UI [label="Minimal UI\n(Vanilla JS + Husk)"];
-        Editor [label="Markdown Editor\n(EasyMDE)"];
+        Editor [label="Markdown Editor\n(editor-markdown)"];
         Renderer [label="Presentation Engine\n(Marked, Mermaid, hpcc-js)"];
         
         UI -> Editor [label="User Input"];
         Editor -> Renderer [label="Live Preview"];
     }
+
+    GitHub -> Server [label="Auto-Deploy (Push)"];
+    JSR -> Server [label="Import"];
+    Server -> UI [label="Serve JS/HTML/CSS"];
+    ESMSH -> UI [label="Runtime Import"];
 }
 ```
+
 
 ## Architecture
 
@@ -99,3 +120,21 @@ Three-layer cascade (Factory → User → Document):
 | `Escape` | Toggle details panel |
 | `←` `↑` | Previous slide |
 | `→` `↓` | Next slide |
+
+## Deployment and Hosting
+
+The application is hosted on **Deno Deploy** to leverage its native Deno integration and edge performance.
+
+### Hosting Strategy
+- **Primary Host**: Deno Deploy.
+- **Build Strategy**: To minimize reliance on complex GitHub Actions "services", the application is designed to be self-sufficient:
+  - **Dynamic Transpilation**: The server can transpile the UI at startup or on-the-fly using `@deno/emit`, avoiding the need to commit built artifacts (`ui-dist/`) to the repository.
+  - **Submodule-Free**: The `husk` framework is transitioned to a JSR dependency (`jsr:@invisement/husk`) instead of a Git submodule, simplifying the deployment pipeline.
+
+### Alternatives Considered
+- **GitHub Pages**: Rejected because it only supports static files and lacks the Deno runtime.
+- **Google Cloud Run (GCP)**: Considered as a fallback for high-scale needs, but Deno Deploy was chosen for its developer experience and zero-config deployment.
+
+### Continuous Deployment
+The repository is linked directly to Deno Deploy. Every push to the `main` branch triggers an automatic deployment.
+
