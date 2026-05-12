@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap');
+
+:root {
+  --bg-deep: #020617;
+  --bg-surface: #0f172a;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.15);
+  --border: rgba(255, 255, 255, 0.08);
+  --glass: rgba(15, 23, 42, 0.8);
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.editor-wrapper {
+  width: 90%;
+  max-width: 900px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.editor-toolbar {
+  padding: 12px 24px;
+  background: var(--glass);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.tiptap {
+  padding: 40px;
+  min-height: 500px;
+  outline: none;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: "Start writing your masterpiece...";
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(to bottom right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-top: 0;
+}
+
+.tiptap h2 {
+  font-size: 2rem;
+  color: var(--accent);
+  margin-top: 2rem;
+}
+
+.tiptap code {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--accent);
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+.tiptap blockquote {
+  border-left: 4px solid var(--accent);
+  padding-left: 1.5rem;
+  margin-left: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.tiptap ul, .tiptap ol {
+  padding-left: 1.5rem;
+}
+
+.tiptap li {
+  margin-bottom: 0.5rem;
+}
+
+/* Custom Selection */
+::selection {
+  background: var(--accent-glow);
+  color: var(--accent);
+}

@@ -437,3 +437,18 @@ body.editing #details {
 .editor-preview-side {
     display: none !important;
 }
+.render-error {
+    border: 2px dashed #ff4444;
+    padding: 1em;
+    position: relative;
+}
+
+.render-error::after {
+    content: "⚠️ Render Error (Check console)";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 10px;
+    color: #ff4444;
+    font-weight: bold;
+}

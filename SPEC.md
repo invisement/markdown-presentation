@@ -2,139 +2,109 @@
 
 ## What It Is
 
-A self-contained markdown viewer/presenter. Modular for development, yet capable of being bundled into a single-file offline HTML.
-Open the app, pick a folder, and instantly view/present/print your markdown.
+A self-contained markdown viewer/presenter built on the **Husk Engine**. 
+Modular for development, yet capable of being bundled into a single-file offline HTML.
 
-## Tech Stack & Major Decisions
+## Tech Stack
 
-*   **Frontend (Vanilla JS/TS):** We intentionally avoided heavy frameworks (React/Next). The UI is minimal and uses a custom lightweight library called `Husk`.
-*   **Runtime (Deno):** Deno provides a complete ecosystem for transpilation, bundling, and local serving without a complex `node_modules` setup.
-*   **Modular ESM (Import Maps):** We use browser-native Import Maps to manage dependencies (marked, mermaid, hpcc-js) modularly.
-*   **Husk Localized**: The `Husk` framework is localized within the project for rapid, co-located development.
+*   **Engine:** [Husk Framework](./husk/README.md) (Smart Lazy & Incremental Build).
+*   **Runtime:** Deno 2.7+.
+*   **Editor:** [Markdown Editor](./editor-easymde/mod.ts).
+*   **Rendering:** Marked (GFM), Mermaid, Graphviz (WASM).
 
-## Taxonomy: Modes & Channels
+## Application Architecture
 
-### Modes
-*   **View/Read**: Default scrollable view.
-*   **Present**: Fullscreen slideshow mode (shortcut: `p`).
-*   **Print**: Optimized for 16:9 PDF export (shortcut: `Cmd+P`).
-*   **Edit**: Inline markdown editing via EasyMDE.
-
-### Channels
-*   **Dev**: Local development via `deno task dev`. Transpiles TS on-the-fly.
-*   **Webapp**: Optimized for static hosting/Deno Deploy.
-*   **Standalone**: Fully self-contained HTML (`dist/markdown-presenter.html`) for offline use.
-
-## Build Pipelines
-
-| Channel | Pipeline | Technology | Output |
-| :--- | :--- | :--- | :--- |
-| **Dev** | `deno task dev` | Husk (`transpile`) | Memory / Local Server |
-| **Webapp** | `deno task build` | Husk (`transpile`) | `ui-dist/` |
-| **Standalone** | `deno task standalone` | Husk (`bundle` + inline) | `dist/markdown-presenter.html` |
+Markdown Presenter consumes the **Husk Engine** to provide a zero-config development experience.
 
 ```dot
-digraph Architecture {
-    rankdir=LR;
-    node [shape=box, style=rounded, fontname="Helvetica", margin="0.2,0.1"];
-    edge [fontname="Helvetica", fontsize=10, color="#555555"];
+digraph AppArchitecture {
+    rankdir=TB;
+    node [shape=box, style="rounded,filled", fontname="Inter, Helvetica", fontsize=10, fillcolor="#f9f9f9", color="#cccccc"];
+    edge [fontname="Inter, Helvetica", fontsize=9, color="#666666"];
 
-    subgraph cluster_external {
-        label="External Dependencies";
-        style=dashed;
-        color="#888888";
-        JSR [label="JSR (@invisement/husk)"];
-        ESMSH [label="esm.sh (marked, mermaid, etc)"];
-    }
-
-    subgraph cluster_hosting {
-        label="Deno Deploy (Cloud)";
+    subgraph cluster_app {
+        label="Markdown Presenter (Application)";
+        fontname="Inter Bold";
+        fillcolor="#f0f0f0";
         style=filled;
-        color="#f0f0f0";
-        Server [label="Deno Server (server.ts)\nDynamic Transpiler"];
+
+        UI [label="UI Core\n(ui/index.ts)", fillcolor="#ffffff", style=bold];
+        Server [label="Entry Point\n(server.ts)", fillcolor="#ffffff"];
+        Editor [label="Editor Module\n(editor-easymde)", fillcolor="#ffffff"];
     }
 
-    subgraph cluster_frontend {
-        label="Frontend (Client Browser)";
-        style=dashed;
-        color="#888888";
-        
-        UI [label="Minimal UI\n(Vanilla JS + Husk)"];
-        Editor [label="Markdown Editor\n(editor-markdown)"];
-        Renderer [label="Presentation Engine\n(Marked, Mermaid, hpcc-js)"];
-        
-        UI -> Editor [label="User Input"];
-        Editor -> Renderer [label="Live Preview"];
+    subgraph cluster_husk {
+        label="Husk Engine (Framework)";
+        fontname="Inter Bold";
+        fillcolor="#fff9c4";
+        style=filled;
+        HuskCore [label="Router & Build Engine"];
     }
 
-    GitHub -> Server [label="Auto-Deploy (Push)"];
-    JSR -> Server [label="Import"];
-    Server -> UI [label="Serve JS/HTML/CSS"];
-    ESMSH -> UI [label="Runtime Import"];
+    Server -> HuskCore [label="Configures"];
+    HuskCore -> UI [label="Serves"];
+    UI -> Editor [label="Controls"];
+    HuskCore -> "ui-dist/" [label="Manages"];
 }
 ```
 
+## Rendering Pipeline
 
-## Architecture
+```dot
+digraph Rendering {
+    rankdir=LR;
+    node [shape=rect, style="rounded,filled", fontname="Inter, Helvetica", fontsize=10, fillcolor="#f5f5f5"];
+    edge [color="#444444", arrowhead=vee, fontsize=9];
 
-### Loading Model
+    UICore [label="UI Core\n(renderMarkdown)", shape=diamond, style=bold, fillcolor="#fff9c4"];
 
-User picks a folder via `showDirectoryPicker`. The app scans it for `.md` files.
-Relative images are resolved via a directory handle and converted to blob URLs.
+    Marked [label="marked.parse()"];
+    DOM [label="DOM Injection"];
+    Assets [label="resolveRelativeAssets()"];
+    Wrap [label="wrapSections()"];
+    Page [label="applyPageClass()"];
+    HR [label="splitPagesAtHr()"];
+    Mermaid [label="renderMermaid()"];
+    Graphviz [label="renderDotDiagrams()"];
 
-Priority on load:
-1. `?md=URL` query parameter.
-2. `<script id="default-doc">` (for shared files).
-3. Stored directory handle in IndexedDB.
-4. User guide (`user-guide.md`).
-
-### Rendering Pipeline
-
+    UICore -> Marked [label="1. Parses"];
+    UICore -> DOM [label="2. Updates"];
+    UICore -> Assets [label="3. Resolves"];
+    UICore -> Wrap [label="4. Nests"];
+    UICore -> Page [label="5. Slidifies"];
+    UICore -> HR [label="6. Splits"];
+    UICore -> Mermaid [label="7. Renders"];
+    UICore -> Graphviz [label="8. Renders"];
+}
 ```
-markdown text
-  → await marked.parse()      → HTML string
-  → contentDiv.innerHTML      → inject into DOM
-  → resolveRelativeAssets()   → rewrite img src to blob URLs
-  → renderMermaid()           → render mermaid blocks
-  → renderDotDiagrams()       → render dot blocks (@hpcc-js/wasm)
-  → wrapSections()            → nest into section divs
-  → applyPageClass()          → add .page to h1, h2
-  → splitPagesAtHr()          → handle manual page breaks
-```
 
-### Settings Persistence (IndexedDB)
+## Frontend Dependency Management
 
-Three-layer cascade (Factory → User → Document):
-- **Normal changes** → save to document layer.
-- **Factory** → revert to built-in defaults.
-- **Save** → promote current to user profile.
+While the core logic and custom UI components are transpiled and bundled natively via the Husk Engine, massive legacy browser libraries (e.g., EasyMDE, CodeMirror) are loaded directly via standard CDN `<script>` and `<link>` tags in the HTML. 
 
-## Keyboard Shortcuts
+This hybrid architectural decision ensures:
+1. **Tiny Bundle Sizes:** Keeps the local `index.js` bundle extremely lightweight (e.g., a few KB instead of >5MB).
+2. **Ecosystem Compatibility:** Avoids complex polyfill issues (e.g., `node:fs` or `Deno` global reliance) that arise when forcing Node/CJS-friendly UMD modules through strict ESM transpilation.
+3. **Out-of-the-Box Stability:** Guarantees that embedded assets like fonts (e.g., FontAwesome) and dynamically registered language modes execute natively without being stripped by the bundler.
 
-| Key | Action |
-|-----|---------|
-| `p` | `enterPresent()` |
-| `r` | `refreshMarkdown()` |
-| `o` | `loadMarkdownWithHandle()` |
-| `e` | Toggle `Edit` mode |
-| `Escape` | Toggle details panel |
-| `←` `↑` | Previous slide |
-| `→` `↓` | Next slide |
+## Key App Features
 
-## Deployment and Hosting
+### 1. Smart Asset Resolution
+The app uses the **File System Access API** to resolve relative image paths. 
+- It maintains an `assetMap` in memory.
+- It converts local files to `blob:` URLs on-the-fly.
+- This allows local markdown folders to work like a native application.
 
-The application is hosted on **Deno Deploy** to leverage its native Deno integration and edge performance.
+### 2. Layered Persistence (IndexedDB)
+Settings follow a **Default → User → Document** cascade:
+- **Factory**: Reverts to built-in defaults.
+- **Save**: Promotes current settings to the User profile.
+- **Per-Doc**: Automatically restores settings based on the directory/file name.
 
-### Hosting Strategy
-- **Primary Host**: Deno Deploy.
-- **Build Strategy**: To minimize reliance on complex GitHub Actions "services", the application is designed to be self-sufficient:
-  - **Dynamic Transpilation**: The server can transpile the UI at startup or on-the-fly using `@deno/emit`, avoiding the need to commit built artifacts (`ui-dist/`) to the repository.
-  - **Submodule-Free**: The `husk` framework is transitioned to a JSR dependency (`jsr:@invisement/husk`) instead of a Git submodule, simplifying the deployment pipeline.
+## Build & Deployment
 
-### Alternatives Considered
-- **GitHub Pages**: Rejected because it only supports static files and lacks the Deno runtime.
-- **Google Cloud Run (GCP)**: Considered as a fallback for high-scale needs, but Deno Deploy was chosen for its developer experience and zero-config deployment.
-
-### Continuous Deployment
-The repository is linked directly to Deno Deploy. Every push to the `main` branch triggers an automatic deployment.
-
+| Channel | Strategy |
+| :--- | :--- |
+| **Dev** | Husk Smart Lazy (Rebuild on Browser Refresh). |
+| **Prod** | Husk Incremental Build + Deno Deploy. |
+| **Offline** | Standalone Inlining (All-in-one HTML). |

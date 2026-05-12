@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiptap Premium Editor</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="editor-wrapper">
+    <div class="editor-toolbar">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 12px; height: 12px; background: #ff5f56; border-radius: 50%;"></div>
+        <div style="width: 12px; height: 12px; background: #ffbd2e; border-radius: 50%;"></div>
+        <div style="width: 12px; height: 12px; background: #27c93f; border-radius: 50%;"></div>
+      </div>
+      <div style="margin-left: auto; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em;">
+        Draft.md
+      </div>
+    </div>
+    <div id="editor"></div>
+  </div>
+
+  <script type="module">
+    // The build system bundles all npm/jsr dependencies into index.js
+    import { TiptapEditor } from './index.js';
+
+    const container = document.getElementById('editor');
+    const editor = new TiptapEditor(container, '# Welcome to Tiptap\n\nThis is a **premium** markdown editor experience.\n\n- Real-time WYSIWYG\n- Clean Markdown output\n- Sleek Dark Mode\n\n> "Simplicity is the ultimate sophistication."', (md) => {
+      // console.log('MD:', md);
+    });
+
+    window.editorInstance = editor;
+  </script>
+</body>
+</html>

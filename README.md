@@ -1,100 +1,54 @@
 # Markdown Presenter
 
-A zero-install, Deno-powered markdown viewer for reading, presenting, and printing. Works as a single HTML file or a modular web application.
+A professional, Deno-powered markdown viewer for reading, presenting, and printing. Built on the "Smart Lazy" architecture for an instant-feedback development experience.
 
 ## Quick Start (Development)
 
-1. **Install Deno**: [deno.land](https://deno.land/)
-2. **Run Dev Server**:
-   ```bash
-   deno task dev
-   ```
-3. Open [http://localhost:8000](http://localhost:8000)
-4. Click **Open Folder** and pick the folder containing your `.md` files.
+1.  **Install Deno 2.7+**: [deno.com](https://deno.com/)
+2.  **Run Dev Server**:
+    ```bash
+    deno task dev
+    ```
+3.  Open [http://localhost:8000](http://localhost:8000)
+4.  Click **Open Folder** and pick the folder containing your `.md` files.
 
 ## Features
 
-- **Modular ESM**: No heavy bundling for development; uses browser-native Import Maps.
-- **Deno Powered**: Built-in transpilation, file watching, and local server.
-- **Three Modes**: Screen (reading), Present (fullscreen slides), and Print (16:9 PDF).
-- **Diagrams**: Native support for **Mermaid** and **Graphviz (DOT)** via `@hpcc-js/wasm`.
-- **Relative Assets**: Resolves images via File System Access API.
-- **Persistence**: Per-document settings saved in IndexedDB.
-- **Single-File Export**: Build a fully self-contained HTML for offline use.
+-   **Smart Lazy Architecture**: ZERO background CPU usage. UI rebuilds occur **incrementally** and **on-demand** only when you refresh your browser.
+-   **Native Deno 2**: Leverages native Node compatibility and JSR standard libraries.
+-   **Three Modes**: Screen (reading), Present (fullscreen slides), and Print (16:9 PDF).
+-   **Diagrams**: Native support for **Mermaid** and **Graphviz (DOT)** via `@hpcc-js/wasm`.
+-   **Relative Assets**: Resolves images via File System Access API.
+-   **Single-File Export**: Build a fully self-contained HTML for offline use.
 
 ## Project Structure
 
 ```text
-├── ui/                 # Frontend assets (TS, CSS, MD)
-│   ├── index.html      # Main entry point
-│   ├── index.ts        # UI Logic
-│   ├── index.css       # Design System
-│   └── user-guide.md   # Built-in documentation
-├── husk/               # Local Deno framework (Husk)
-│   ├── mod.ts          # Husk core
-│   └── utils/          # Build and transpile utilities
-├── server.ts           # Deno dev server
-└── deno.json           # Deno configuration and Import Maps
+├── ui/                 # Frontend source (TS, CSS, MD)
+├── husk/               # Core Framework (Local Submodule)
+├── editor-easymde/     # Markdown Editor (Local Submodule)
+├── ui-dist/            # Incremental Build Output (Git Ignored)
+├── server.ts           # Deno Entry Point
+└── deno.json           # Project configuration & JSR Imports
 ```
 
 ## Deno Tasks
 
-- `deno task dev`: Starts the dev server. Press `r` in the terminal to manually rebuild the UI.
-- `deno task build`: Transpiles the UI for production deployment.
-- `deno task standalone`: Bundles everything into `dist/markdown-presenter.html`.
+-   `deno task dev`: Starts the dev server with smart UI tracking enabled.
+-   `deno task build`: Perfroms a full incremental build of the UI.
+-   `deno task standalone`: Bundles everything into a single-file offline HTML.
 
 ## Development (Husk Framework)
 
-This project uses **Husk**, a tiny standards-based framework.
+This project uses **Husk v0.7.0**, a framework built for modern Deno.
 
-### Router Handlers
-Route handlers have been updated to a more robust signature:
-```typescript
-router.push("/api/greet/:name", async (params, req) => {
-  const { name } = params;
-  return { message: `Hello ${name}!` }; // Automatically served as JSON
-});
-```
-- **JSON Support**: Returning an object or array automatically sets `Content-Type: application/json`.
-- **Response Objects**: You can return a native `Response` object for full control.
-- **On-Demand Rebuild**: In dev mode, UI transpilation is "lazy". Simply **refresh your browser** to trigger a rebuild and see your latest changes.
-
-## Writing Slides
-
-- `# H1`: Title slide (centered)
-- `## H2`: New slide / page break
-- `### H3`: Sub-section (optional page break)
-- `---`: Force page/column break
-
-## Distribution
-
-### Webapp (Prod)
-Deploy the `ui-dist/` folder to any static host or use Deno Deploy.
-
-### Standalone
-Run `deno task standalone` to produce a single ~5MB file that works entirely offline.
-
-## Troubleshooting
-
-### Address already in use (Port 8000)
-If you see an error like `AddrInUse: Address already in use`, it means a previous server instance is still running in the background.
-
-**Solution:**
-Use the `killport` utility (if you added it to your `.zshrc`):
-```bash
-killport 8000
-```
-
-**Manual (No Alias):**
-If you haven't set up the alias, use this command to find and forcefully kill the process:
-```bash
-lsof -ti:8000 | xargs sudo kill -9
-```
+### On-Demand Rebuilds
+In dev mode, you don't need to restart the server or wait for background watchers. Simply **refresh your browser**. Husk will detect source changes, re-transpile only what is necessary, and serve the updated files in milliseconds.
 
 ## Requirements
 
-- **Deno 1.40+**
-- **Modern Browser**: Chrome or Edge (for File System Access API)
+-   **Deno 2.7+**
+-   **Modern Browser**: Chrome or Edge (for File System Access API)
 
 ## License
 MIT

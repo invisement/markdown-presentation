@@ -1,38 +1,38 @@
 {
 	"name": "@invisement/markdown-presentation",
 	"version": "1.0.1",
-	"husk": {
-		"ui": {
-			"source": "ui",
-			"entrypoints": [
-				"index.html",
-				"index.ts",
-				"index.css",
-				"user-guide.md",
-				"../editor-markdown/mod.ts"
-			],
-			"output": "ui-dist"
-		}
-	},
+	"nodeModulesDir": "auto",
+	"workspace": [
+		"./ui",
+		"./editor-easymde",
+		"./editor-tiptap",
+		"./husk"
+	],
 	"exports": {
 		".": "./server.ts"
 	},
 	"tasks": {
-		"dev": "deno run -A server.ts --watch-ui",
-		"build": "deno run -A ./husk/utils/transpile-ui.ts",
-		"standalone": "deno run -A ./husk/utils/build-standalone.ts",
-		"deploy": "deno task build && deno run -A deploy.ts"
+		"dev": "deno task dev:build & deno task dev:server",
+		"dev:server": "deno run -A server.ts",
+		"dev:build": "deno run -A husk/build.ts --watch",
+		"build": "deno run -A husk/build.ts"
 	},
 	"imports": {
 		"@invisement/husk": "./husk/mod.ts",
-		"@invisement/husk/transpile-ui": "./husk/utils/transpile-ui.ts",
-		"@invisement/editor-markdown": "./editor-markdown/mod.ts",
-		"easymde": "https://esm.sh/easymde@2.18.0",
-		"marked": "https://esm.sh/marked@12.0.0?bundle",
-		"marked-gfm-heading-id": "https://esm.sh/marked-gfm-heading-id@3.1.2?bundle",
-		"mermaid": "https://esm.sh/mermaid@10.8.0",
-		"graphviz": "https://esm.sh/@hpcc-js/wasm@2.16.2/dist/index.js",
-		"node:fs": "./empty.ts",
-		"node:path": "./empty.ts"
+		"@tiptap/core": "npm:@tiptap/core",
+		"@tiptap/starter-kit": "npm:@tiptap/starter-kit",
+		"tiptap-markdown": "npm:tiptap-markdown",
+		"@tiptap/pm/state": "npm:@tiptap/pm/state",
+		"@tiptap/pm/view": "npm:@tiptap/pm/view",
+		"@tiptap/pm/model": "npm:@tiptap/pm/model",
+		"@tiptap/pm/transform": "npm:@tiptap/pm/transform",
+		"prosemirror-state": "npm:prosemirror-state",
+		"easymde": "npm:easymde",
+		"marked": "npm:marked",
+		"marked-gfm-heading-id": "npm:marked-gfm-heading-id",
+		"mermaid": "npm:mermaid",
+		"graphviz": "npm:@hpcc-js/wasm",
+		"node:fs": "jsr:@std/fs",
+		"node:path": "jsr:@std/path"
 	}
 }

@@ -1,4 +1,4 @@
-import { MarkdownEditor } from '@invisement/editor-markdown';
+import { MarkdownEditor } from '@invisement/editor-easymde';
 import { marked } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 
@@ -20,11 +20,8 @@ marked.use(gfmHeadingId());
 // =============================================================
 
 const DIST_CHANNEL = (() => {
-    const el = document.getElementById('app-css');
-    if (el.textContent) return 'standalone';
-    if (el.href) return 'webapp';
-    if (typeof chrome !== 'undefined' && chrome.runtime?.id) return 'browser-ext';
-    return 'vscode-ext';
+    if (document.getElementById('help-doc')?.textContent?.trim()) return 'standalone';
+    return 'webapp';
 })();
 
 
@@ -170,7 +167,8 @@ const renderDotDiagrams = async () => {
     try {
         const { Graphviz } = await import('graphviz');
         const graphviz = await Graphviz.load();
-        dotBlocks.forEach(block => {
+        
+        for (const block of dotBlocks) {
             try {
                 const svgContent = graphviz.dot(block.textContent);
                 const parser = new DOMParser();
@@ -183,36 +181,37 @@ const renderDotDiagrams = async () => {
                     block.parentElement.replaceWith(svg);
                 }
             } catch (err) {
-                block.parentElement.insertAdjacentHTML('beforebegin', `<pre style="color:red">${err.message}</pre>`);
+                console.error('Graphviz rendering error:', err);
+                block.classList.add('render-error');
             }
-        });
+        }
     } catch (e) {
-        console.warn('Graphviz load failed', e);
+        console.warn('Graphviz module load failed', e);
     }
 };
 
 const renderMermaid = async () => {
     const nodes = contentDiv.querySelectorAll('.language-mermaid');
     if (!nodes.length) return;
+    
     try {
-        const m = await import('mermaid');
-        const mermaidInstance = m.default || m.mermaid || m;
-        mermaidInstance.initialize({ 
+        const mermaid = (await import('mermaid')).default;
+        mermaid.initialize({ 
             startOnLoad: false, 
             theme: 'default',
             securityLevel: 'loose',
             fontFamily: 'system-ui, sans-serif'
         });
-        await mermaidInstance.run({ nodes });
+        await mermaid.run({ nodes });
         
-        // Also constrain mermaid SVG sizes
         contentDiv.querySelectorAll('.language-mermaid svg').forEach(svg => {
-            (svg as any).style.maxWidth = '100%';
-            (svg as any).style.height = 'auto';
-            (svg as any).style.maxHeight = '60vh';
+            const element = svg as HTMLElement;
+            element.style.maxWidth = '100%';
+            element.style.height = 'auto';
+            element.style.maxHeight = '60vh';
         });
     } catch (e) {
-        console.warn('Mermaid load failed', e);
+        console.warn('Mermaid rendering failed', e);
     }
 };
 

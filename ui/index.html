@@ -9,25 +9,12 @@
     <link rel="stylesheet" id="app-css" href="index.css">
     <style id="custom-css"></style>
     
-    <!-- === VENDOR: EasyMDE === -->
+    <!-- === VENDOR STYLES === -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- === FAVICON (suppress 404) === -->
     <link rel="icon" href="data:,">
-
-    <!-- === IMPORT MAP === -->
-    <script type="importmap">
-    {
-        "imports": {
-            "easymde": "https://esm.sh/easymde@2.18.0",
-            "marked": "https://esm.sh/marked@12.0.0?bundle",
-            "marked-gfm-heading-id": "https://esm.sh/marked-gfm-heading-id@3.1.2?bundle",
-            "mermaid": "https://esm.sh/mermaid@10.8.0",
-            "graphviz": "https://esm.sh/@hpcc-js/wasm@2.16.2/dist/index.js",
-            "@invisement/editor-markdown": "./mod.js"
-        }
-    }
-    </script>
 </head>
 <body>
 
@@ -83,10 +70,10 @@
         <div id="content"></div>
     </div>
 
-    <!-- === DEFAULT DOCUMENT (empty = no baked-in content) === -->
+    <!-- === DEFAULT DOCUMENT === -->
     <script type="text/markdown" id="default-doc"></script>
 
-    <!-- === APP LOGIC === -->
+    <!-- === APP LOGIC (Bundled) === -->
     <script type="module" src="index.js"></script>
 
 </body>
