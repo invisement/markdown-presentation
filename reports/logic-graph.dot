@@ -53,6 +53,7 @@ digraph logic {
   "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
   "dom-servicer.ts:DomServicer:attachObserver" -> "Browser:MutationObserver";
   "dom-servicer.ts:DomServicer:createNode" -> "Browser:document";
+  "dom-servicer.ts:DomServicer:createNode" -> "dom-servicer.ts:DomServicer:attachObserver";
   "dom-servicer.ts:DomServicer:onMarkerMutation" -> "Topic:markerChanged";
   "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Topic:markerRemoved";
   "dom-servicer.ts:DomServicer:replaceNode" -> "Browser:window";
