@@ -11,7 +11,6 @@ digraph logic {
     "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" [label="unwrapInlineStyle"];
     "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" [label="handleBlockInput"];
     "editor-orchestrator.ts:EditorOrchestrator:loadSample" [label="loadSample"];
-    "editor-orchestrator.ts:EditorOrchestrator:main" [label="main"];
   }
   subgraph "cluster_MdCtrl" {
     label = "MdCtrl";
@@ -23,16 +22,11 @@ digraph logic {
     "dom-servicer.ts:DomServicer:removeNode" [label="removeNode"];
     "dom-servicer.ts:DomServicer:unwrapNode" [label="unwrapNode"];
     "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend"];
-    "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation"];
     "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved"];
-  }
-  subgraph "cluster_pubsub_ts_Module" {
-    label = "Module: pubsub.ts";
-    "pubsub.ts:Module:setupFlow" [label="setupFlow"];
+    "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation"];
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
-    "markdown-parser.ts:MarkdownParser:constructor" [label="constructor"];
     "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline"];
   }
   subgraph cluster_events {
@@ -43,8 +37,8 @@ digraph logic {
   subgraph cluster_browser {
     label = "Browser APIs";
     "Browser:fetch" [label="fetch"];
-    "Browser:document" [label="document"];
     "Browser:customElements" [label="customElements"];
+    "Browser:document" [label="document"];
     "Browser:MutationObserver" [label="MutationObserver"];
     "Browser:window" [label="window"];
   }
@@ -62,20 +56,10 @@ digraph logic {
   "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "dom-servicer.ts:DomServicer:replaceNode";
   "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "Browser:fetch";
   "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "dom-servicer.ts:DomServicer:clearAndAppend";
-  "editor-orchestrator.ts:EditorOrchestrator:main" -> "Browser:document";
   "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" -> "dom-servicer.ts:DomServicer:replaceNode";
   "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" -> "dom-servicer.ts:MdCtrl:syncContent";
   "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" -> "dom-servicer.ts:DomServicer:replaceNode";
   "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:removeNode";
   "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:unwrapNode";
-  "markdown-parser.ts:MarkdownParser:constructor" -> "Browser:document";
-  "markdown-parser.ts:MarkdownParser:constructor" -> "markdown-parser.ts:MarkdownParser:parseInline";
   "markdown-parser.ts:MarkdownParser:parseInline" -> "Browser:document";
-  "pubsub.ts:Module:setupFlow" -> "dom-servicer.ts:DomServicer:onMarkerMutation";
-  "pubsub.ts:Module:setupFlow" -> "dom-servicer.ts:DomServicer:onMarkerRemoved";
-  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput";
-  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
-  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers";
-  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
-  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
 }
