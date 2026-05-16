@@ -5,34 +5,34 @@ digraph logic {
 
   subgraph "cluster_EditorOrchestrator" {
     label = "EditorOrchestrator";
-    "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" [label="syncPairedMarkers"];
-    "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" [label="transformBlockStructure"];
-    "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" [label="reparseCollapsedBlock"];
-    "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" [label="unwrapInlineStyle"];
-    "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" [label="handleBlockInput"];
-    "editor-orchestrator.ts:EditorOrchestrator:loadSample" [label="loadSample"];
+    "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" [label="syncPairedMarkers", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" [label="transformBlockStructure", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" [label="reparseCollapsedBlock", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" [label="unwrapInlineStyle", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" [label="handleBlockInput", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator:loadSample" [label="loadSample", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
   }
   subgraph "cluster_MdCtrl" {
     label = "MdCtrl";
-    "dom-servicer.ts:MdCtrl:syncContent" [label="syncContent"];
+    "dom-servicer.ts:MdCtrl:syncContent" [label="syncContent", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
   }
   subgraph "cluster_DomServicer" {
     label = "DomServicer";
-    "dom-servicer.ts:DomServicer:replaceNode" [label="replaceNode"];
-    "dom-servicer.ts:DomServicer:removeNode" [label="removeNode"];
-    "dom-servicer.ts:DomServicer:unwrapNode" [label="unwrapNode"];
-    "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend"];
-    "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved"];
-    "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation"];
+    "dom-servicer.ts:DomServicer:replaceNode" [label="replaceNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:removeNode" [label="removeNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:unwrapNode" [label="unwrapNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
-    "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline"];
+    "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
   }
   subgraph cluster_events {
     label = "Events / PubSub";
-    "Topic:markerChanged" [label="markerChanged"];
-    "Topic:markerRemoved" [label="markerRemoved"];
+    "Topic:markerChanged" [label="markerChanged", URL="pubsub.ts", tooltip="pubsub.ts"];
+    "Topic:markerRemoved" [label="markerRemoved", URL="pubsub.ts", tooltip="pubsub.ts"];
   }
   subgraph cluster_browser {
     label = "Browser APIs";
