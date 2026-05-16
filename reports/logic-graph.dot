@@ -28,7 +28,7 @@ digraph logic {
   }
   subgraph "cluster_pubsub_ts_Module" {
     label = "Module";
-    "pubsub.ts:Module:top-level" [label="top-level"];
+    "pubsub.ts:Module:setupFlow" [label="setupFlow"];
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
@@ -71,11 +71,11 @@ digraph logic {
   "markdown-parser.ts:MarkdownParser:constructor" -> "Browser:document";
   "markdown-parser.ts:MarkdownParser:constructor" -> "markdown-parser.ts:MarkdownParser:parseInline";
   "markdown-parser.ts:MarkdownParser:parseInline" -> "Browser:document";
-  "pubsub.ts:Module:top-level" -> "dom-servicer.ts:DomServicer:onMarkerMutation";
-  "pubsub.ts:Module:top-level" -> "dom-servicer.ts:DomServicer:onMarkerRemoved";
-  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput";
-  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
-  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers";
-  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
-  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
+  "pubsub.ts:Module:setupFlow" -> "dom-servicer.ts:DomServicer:onMarkerMutation";
+  "pubsub.ts:Module:setupFlow" -> "dom-servicer.ts:DomServicer:onMarkerRemoved";
+  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput";
+  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
+  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers";
+  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
+  "pubsub.ts:Module:setupFlow" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
 }
