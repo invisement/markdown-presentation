@@ -58,7 +58,6 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
         const { marker, content, parent } = val;
         const targetTag = this.identifyTargetTag(content, parent.tagName);
         if (targetTag && targetTag !== parent.tagName) {
-            console.debug(`[FLOW] transformBlockStructure | trigger node swap: <${parent.tagName.toLowerCase()}> -> <${targetTag.toLowerCase()}>`);
             if (targetTag === 'P') {
                 this.dom.replaceNode(parent, this.parser.parseBlock(parent.innerText));
             } else if (targetTag === 'PRE') {
@@ -108,7 +107,6 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
         const hMatch = content.match(/^(#{1,6})[\s\u00A0]$/);
         if (hMatch) {
             const level = hMatch[1].length;
-            console.debug(`[TRACE] identifyTargetTag | detected Header level ${level}`);
             return 'H' + level;
         }
         if (/^-[\s\u00A0]$/.test(content)) return 'LI';

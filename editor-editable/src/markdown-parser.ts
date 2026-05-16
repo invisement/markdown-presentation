@@ -58,7 +58,6 @@ export class MarkdownParser implements MarkdownParserFace {
     }
 
     parseBlock(line: string): HTMLElement {
-        console.debug(`[TRACE] MarkdownParser | parseBlock | line: "${line}"`);
         const hMatch = line.match(Schema.BLOCK_HEADER);
         if (hMatch) {
             const el = this.dom.createNode('h' + hMatch[1].length);

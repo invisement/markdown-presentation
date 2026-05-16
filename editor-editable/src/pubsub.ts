@@ -16,25 +16,22 @@ export const Topics = {
  * This function defines the declarative "Flow" of the entire application.
  */
 export function setupFlow(
-    dom: DomServicerFace, 
+    dom: DomServicerFace,
     orch: EditorOrchestratorFace,
     editorEl: HTMLElement
 ) {
     // 1. Marker Change Flow
     Topics.markerChanged.bus(
-        [ (cb) => dom.onMarkerMutation(cb) ],
-        [ (val) => {
-            if (val) console.debug(`[FLOW] markerChanged | content: "${val.content}" | parent: <${val.parent.tagName.toLowerCase()}>`);
-          },
-          (val) => val && orch.syncPairedMarkers(val), 
-          (val) => val && orch.transformBlockStructure(val) ]
+        [(cb) => dom.onMarkerMutation(cb)],
+        [(val) => val && orch.syncPairedMarkers(val),
+        (val) => val && orch.transformBlockStructure(val)]
     );
 
     // 2. Marker Removal Flow
     Topics.markerRemoved.bus(
-        [ (cb) => dom.onMarkerRemoved(cb) ],
-        [ (val) => val && orch.reparseCollapsedBlock(val),
-          (val) => val && orch.unwrapInlineStyle(val) ]
+        [(cb) => dom.onMarkerRemoved(cb)],
+        [(val) => val && orch.reparseCollapsedBlock(val),
+        (val) => val && orch.unwrapInlineStyle(val)]
     );
 
     // 3. Raw Block Input Flow

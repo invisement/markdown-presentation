@@ -115,7 +115,6 @@ export class DomServicer implements DomServicerFace {
         if (type === 'md-ctrl') {
             this.attachObserver(el as MarkerFace, () => {
                 if (this._mutationCb) {
-                    console.debug(`[TRACE] DomServicer | marker mutation | new content: "${el.textContent}"`);
                     this._mutationCb({
                         marker: el as MarkerFace,
                         content: el.textContent || '',
@@ -139,11 +138,9 @@ export class DomServicer implements DomServicerFace {
     replaceNode(oldNode: HTMLElement, newNode: Node | DocumentFragment) {
         const sel = window.getSelection();
         const offset = sel?.anchorOffset ?? 0;
-        console.debug(`[TRACE] replaceNode | BEFORE | anchorNode:`, sel?.anchorNode, `offset:`, offset);
 
         oldNode.replaceWith(newNode);
 
-        console.debug(`[TRACE] replaceNode | AFTER | anchorNode:`, sel?.anchorNode, `offset:`, sel?.anchorOffset);
         if (sel && sel.anchorNode) {
             try { sel.collapse(sel.anchorNode, offset); } catch (e) { /* Caret restore failed */ }
         }
@@ -167,13 +164,11 @@ export class DomServicer implements DomServicerFace {
         if (!parent) return node;
         const sel = window.getSelection();
         const offset = sel?.anchorOffset ?? 0;
-        console.debug(`[TRACE] swapNodes | BEFORE | anchorNode:`, sel?.anchorNode, `offset:`, offset);
 
         const newParent = this.createNode(newTag);
         newParent.append(...parent.childNodes);
         parent.replaceWith(newParent);
 
-        console.debug(`[TRACE] swapNodes | AFTER | anchorNode:`, sel?.anchorNode, `offset:`, sel?.anchorOffset);
         if (sel && sel.anchorNode) {
             try { sel.collapse(sel.anchorNode, offset); } catch (e) { /* Caret restore failed */ }
         }
@@ -181,7 +176,6 @@ export class DomServicer implements DomServicerFace {
     }
 
     unwrapNode(node: HTMLElement) {
-        console.debug(`[FLOW] unwrapNode | removing <${node.tagName.toLowerCase()}> and preserving children`);
         node.before(...node.childNodes);
         node.remove();
     }
