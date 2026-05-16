@@ -26,10 +26,12 @@ We have successfully implemented the core architecture using a **Type-Driven Ser
 - [X] **Asset Management**: Fixed build pipeline to correctly handle nested asset directories (`input/`).
 - [X] **Tracing & Cleanliness**: Removed "surgery" terminology and established a standard tracing flow for state transitions.
 
-### 4. [ ] Get a logical dependency graph 
-    - [ ] get our logical dependency (which method calls which method)
-    - [ ] create a husk utility for js only
-    - [ ] also get package depency
+### 4.- [x] **Iteration 4**: Behavioral Traceability.
+    - [x] Implement Husk Logic-Graph utility.
+    - [x] Map Service-to-Service method dependencies.
+    - [x] Map PubSub event-flow (Publisher -> Topic -> Subscriber).
+    - [x] Enforce architectural invariants through visualization.
+- [ ] **Iteration 5**: Editor Logic Decoupling.
 
 
 ### 4. [ ] Remove event: tables, images, etc.

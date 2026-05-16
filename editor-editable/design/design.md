@@ -74,18 +74,38 @@ These are non-negotiable design decisions that must be followed. Any deviation m
 
 
 
-## Events and Pubsub
+## PubSub
 
-in event driven solutions (like js/ui), we will have a emiting events and receiving events. I am more aligned with pubsub class.
-Then in project's pubsub.js we can write:
+We use an explicit **PubSub** mechanism to manage event-driven reactivity, specifically for the lifecycle of Markdown markers (`md-ctrl`). This ensures that reactive changes are declarative and visible.
 
-mdCtrl = new Pubsub () (husk has it)
-    mdCtrl.pub(publisher1.publishVal)
-    mdCtrl.sub(subscriber1.handler)
+### Event-Driven Logic
+While much of the system's structure is governed by direct service orchestration, PubSub handles the "active" part of the editor:
+- **Marker Mutations**: When an `md-ctrl` element is modified, it publishes to the `markerChanged` topic.
+- **Reactive Actions**: The `EditorOrchestrator` subscribes to these topics to perform surgical updates, such as syncing paired markers or swapping block tags.
 
-(We might have to deal with variable and closure scoping and using arrow functions)
+### Beyond the Bus: Logical Dependency
+It is important to note that PubSub is only one layer of the software logic. The total **Logical Dependency** of the system—which we aim to capture in the dependency graph—includes:
+- **Direct Function Calls**: Synchronous interactions between services (e.g., `EditorOrchestrator` calling `DomServicer.swapNodes`).
+- **Web Component Hooks**: Lifecycle logic within `connectedCallback` and `disconnectedCallback`.
+- **External Effects**: Direct calls to browser APIs like `window.getSelection()` or `document.replaceWith()`.
 
-the biggest advantage is we know what happens. I believe random calls of different methods are evil. we should see the flow. here pubsub is the onlyone that know the logic: these objects publish this value (or function) and these objects do this method with it.
-It would be better method name to be clear not "handler" more what major action is going to be taken (verb).
+The purpose of the **Method Dependency Graph** (Iteration 4) is to visualize *all* these relationships, ensuring that both event-driven flows and direct method calls remain traceable and maintainable.
+
+
+### Method Dependency Graph
+
+To ensure behavioral integrity, we use the `husk/utils/logic-graph.ts` utility to generate a **Logical Dependency Graph**. This tool performs static analysis to map:
+
+1.  **Service-to-Service Calls**: Direct method invocations between classes like `EditorOrchestrator` and `DomServicer`.
+2.  **PubSub Flows**: Explicit mapping of `Publisher -> Topic -> Subscriber`, making the "hidden" event-driven logic visible and traceable.
+3.  **Browser API Surface**: Tracking where and how we interact with `document`, `window`, and `MutationObserver`.
+
+This graph serves as our **Architectural Truth**, allowing us to verify that logic flows correctly and that invariants (such as direct DOM manipulation outside of `DomServicer`) are strictly avoided.
+we can dicuss how to get a list of targeted ("important or crucial or interesting") method/functions/objects.
+When we have them, a little text parser in js or go can tracerse line by line. first find the context (which class.method this line belongs too) then bag all targeted functions/method/object that the line calls for that context. 
+
+
+
+
 
 

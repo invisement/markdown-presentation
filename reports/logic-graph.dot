@@ -1,0 +1,81 @@
+digraph logic {
+  graph [fontsize=24; rankdir="LR"; labelloc="b"; concentrate=true; overlap=false; splines=true; color=black; nodesep=0.5; ranksep=2;];
+  node [shape=box, fontsize=16, color=blue, fontname="Arial", style=filled, fillcolor="#f9f9ff"];
+  edge [fontsize=12, color=blue, arrowhead=vee];
+
+  subgraph "cluster_EditorOrchestrator" {
+    label = "EditorOrchestrator";
+    "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" [label="syncPairedMarkers"];
+    "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" [label="transformBlockStructure"];
+    "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" [label="reparseCollapsedBlock"];
+    "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" [label="unwrapInlineStyle"];
+    "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" [label="handleBlockInput"];
+    "editor-orchestrator.ts:EditorOrchestrator:loadSample" [label="loadSample"];
+    "editor-orchestrator.ts:EditorOrchestrator:main" [label="main"];
+  }
+  subgraph "cluster_MdCtrl" {
+    label = "MdCtrl";
+    "dom-servicer.ts:MdCtrl:syncContent" [label="syncContent"];
+  }
+  subgraph "cluster_DomServicer" {
+    label = "DomServicer";
+    "dom-servicer.ts:DomServicer:replaceNode" [label="replaceNode"];
+    "dom-servicer.ts:DomServicer:removeNode" [label="removeNode"];
+    "dom-servicer.ts:DomServicer:unwrapNode" [label="unwrapNode"];
+    "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend"];
+    "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation"];
+    "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved"];
+  }
+  subgraph "cluster_pubsub_ts_Module" {
+    label = "Module";
+    "pubsub.ts:Module:top-level" [label="top-level"];
+  }
+  subgraph "cluster_MarkdownParser" {
+    label = "MarkdownParser";
+    "markdown-parser.ts:MarkdownParser:constructor" [label="constructor"];
+    "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline"];
+  }
+  subgraph cluster_events {
+    label = "Events / PubSub";
+    "Topic:markerChanged" [label="markerChanged"];
+    "Topic:markerRemoved" [label="markerRemoved"];
+  }
+  subgraph cluster_browser {
+    label = "Browser APIs";
+    "Browser:fetch" [label="fetch"];
+    "Browser:document" [label="document"];
+    "Browser:customElements" [label="customElements"];
+    "Browser:MutationObserver" [label="MutationObserver"];
+    "Browser:window" [label="window"];
+  }
+  "Topic:markerChanged" -> "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers";
+  "Topic:markerChanged" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
+  "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
+  "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
+  "dom-servicer.ts:DomServicer:clearAndAppend" -> "Browser:window";
+  "dom-servicer.ts:DomServicer:onMarkerMutation" -> "Topic:markerChanged";
+  "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Browser:MutationObserver";
+  "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Browser:document";
+  "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Topic:markerRemoved";
+  "dom-servicer.ts:DomServicer:replaceNode" -> "Browser:window";
+  "dom-servicer.ts:MdCtrl:syncContent" -> "Browser:customElements";
+  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "dom-servicer.ts:DomServicer:replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "Browser:fetch";
+  "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "dom-servicer.ts:DomServicer:clearAndAppend";
+  "editor-orchestrator.ts:EditorOrchestrator:main" -> "Browser:document";
+  "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" -> "dom-servicer.ts:DomServicer:replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" -> "dom-servicer.ts:MdCtrl:syncContent";
+  "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" -> "dom-servicer.ts:DomServicer:replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:removeNode";
+  "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:unwrapNode";
+  "markdown-parser.ts:MarkdownParser:constructor" -> "Browser:document";
+  "markdown-parser.ts:MarkdownParser:constructor" -> "markdown-parser.ts:MarkdownParser:parseInline";
+  "markdown-parser.ts:MarkdownParser:parseInline" -> "Browser:document";
+  "pubsub.ts:Module:top-level" -> "dom-servicer.ts:DomServicer:onMarkerMutation";
+  "pubsub.ts:Module:top-level" -> "dom-servicer.ts:DomServicer:onMarkerRemoved";
+  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput";
+  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
+  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers";
+  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
+  "pubsub.ts:Module:top-level" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
+}

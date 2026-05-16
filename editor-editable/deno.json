@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "tasks": {
+    "graph": "deno run -A ../husk/utils/logic-graph.ts --in=src --out=../reports/logic-graph.dot"
   }
 }

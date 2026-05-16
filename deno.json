@@ -17,7 +17,12 @@
 		"dev": "deno task dev:build & deno task dev:server",
 		"dev:server": "deno run -A server.ts",
 		"dev:build": "deno run -A husk/build.ts --watch",
-		"build": "deno run -A husk/build.ts"
+		"build": "deno run -A husk/build.ts",
+		"graph": "deno run -A husk/utils/logic-graph.ts --in=editor-editable/src --out=reports/logic-graph.dot"
+	},
+	"logic-graph": {
+		"exclude": "^(constructor|main|top-level)$",
+		"include": ["window", "document", "Selection"]
 	},
 	"imports": {
 		"@invisement/husk": "./husk/mod.ts",
