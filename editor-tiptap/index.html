@@ -21,12 +21,22 @@
     <div id="editor"></div>
   </div>
 
+  <style>
+    /* Custom test CSS for outcome HTML */
+    .tiptap strong {
+      color: #ffbd2e; /* Golden bold */
+    }
+    .tiptap em {
+      color: #38bdf8; /* Blue italic */
+    }
+  </style>
+
   <script type="module">
     // The build system bundles all npm/jsr dependencies into index.js
     import { TiptapEditor } from './index.js';
 
     const container = document.getElementById('editor');
-    const editor = new TiptapEditor(container, '# Welcome to Tiptap\n\nThis is a **premium** markdown editor experience.\n\n- Real-time WYSIWYG\n- Clean Markdown output\n- Sleek Dark Mode\n\n> "Simplicity is the ultimate sophistication."', (md) => {
+    const editor = new TiptapEditor(container, '# Heading One\n\n## Heading Two\n\nThis is **bold text** and this is *italic text*.\n\n> This is a blockquote\n\nHere is some `inline code`.\n\n- List item one\n- List item two', (md) => {
       // console.log('MD:', md);
     });
 

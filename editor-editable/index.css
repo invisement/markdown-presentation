@@ -1,0 +1,116 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Georgia, serif;
+	background: #1a1a2e;
+	color: #e0e0e0;
+	display: flex;
+	justify-content: center;
+	padding: 40px 20px;
+}
+
+#editor {
+	width: 100%;
+	max-width: 720px;
+	min-height: 400px;
+	padding: 32px;
+	background: #16213e;
+	border: 1px solid #0f3460;
+	border-radius: 8px;
+	outline: none;
+	font-size: 16px;
+	line-height: 1.7;
+	caret-color: #e94560;
+}
+
+/* Block elements */
+#editor h1 {
+	font-size: 1.8em;
+	color: #e94560;
+	margin: 0.4em 0;
+}
+
+#editor h2 {
+	font-size: 1.5em;
+	color: #e94560;
+	margin: 0.3em 0;
+}
+
+#editor h3 {
+	font-size: 1.25em;
+	color: #e94560;
+	margin: 0.2em 0;
+}
+
+#editor p {
+	margin: 0.3em 0;
+}
+
+#editor ul {
+	list-style: none;
+	padding-left: 0;
+	margin: 0.3em 0;
+}
+
+#editor li {
+	padding-left: 1em;
+}
+
+/* Inline formatting */
+#editor b {
+	color: #f5f5f5;
+	font-weight: 700;
+}
+
+#editor i {
+	color: #ccc;
+}
+
+#editor code {
+	background: #0d1b2a;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-family: 'Fira Code', monospace;
+	font-size: 0.9em;
+	color: #7ec8e3;
+}
+
+#editor pre {
+	background-color: #0d1b2a;
+	padding: 12px;
+	border-radius: 6px;
+	margin: 1em 0;
+	color: #7ec8e3;
+}
+
+#editor .code-content {
+	padding: 8px 0;
+	white-space: pre;
+}
+
+#editor .html-tag {
+	background-color: rgba(184, 134, 11, 0.2);
+	border: 1px solid rgba(184, 134, 11, 0.4);
+	padding: 0 4px;
+	border-radius: 3px;
+}
+
+/* Markdown control chars — muted */
+md-ctrl {
+	color: #555;
+	font-family: 'Fira Code', monospace;
+	font-size: 0.8em;
+	font-weight: normal;
+	font-style: normal;
+}
+
+/* HTML tags shown as text */
+.md-html-tag {
+	color: #b8860b;
+	font-family: 'Fira Code', monospace;
+	font-size: 0.85em;
+}

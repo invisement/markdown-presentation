@@ -1,0 +1,49 @@
+/* editor-content.css - Semantic Explicit Editor */
+
+.ProseMirror {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  padding: 1rem;
+}
+
+/* 1. Custom MD Char tag */
+md-char {
+  color: #999;
+  font-family: monospace;
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 2. Semantic Tags Styling */
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
+  color: #0056b3;
+  margin: 1rem 0;
+}
+
+.ProseMirror h1 { font-size: 1.6em; }
+.ProseMirror h2 { font-size: 1.4em; }
+.ProseMirror h3 { font-size: 1.2em; }
+
+.ProseMirror strong {
+  font-weight: bold;
+}
+
+.ProseMirror em {
+  font-style: italic;
+}
+
+.ProseMirror code {
+  background-color: #f0f0f0;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.ProseMirror ul, .ProseMirror ol {
+  padding-left: 1.5rem;
+}
+
+.ProseMirror li {
+  margin-bottom: 0.5rem;
+}

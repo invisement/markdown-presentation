@@ -50,27 +50,21 @@ body {
   line-height: 1.7;
 }
 
-.tiptap p.is-editor-empty:first-child::before {
-  content: "Start writing your masterpiece...";
-  float: left;
-  color: var(--text-muted);
-  pointer-events: none;
-  height: 0;
-}
-
 .tiptap h1 {
   font-size: 3rem;
   font-weight: 800;
-  background: linear-gradient(to bottom right, #fff, #94a3b8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   margin-top: 0;
+  color: #fff;
 }
 
 .tiptap h2 {
   font-size: 2rem;
   color: var(--accent);
-  margin-top: 2rem;
+  margin-top: 1.5rem;
+}
+
+.tiptap strong {
+  font-weight: 700;
 }
 
 .tiptap code {
@@ -82,20 +76,12 @@ body {
   font-size: 0.9em;
 }
 
-.tiptap blockquote {
-  border-left: 4px solid var(--accent);
-  padding-left: 1.5rem;
-  margin-left: 0;
+.style-char {
   color: var(--text-muted);
-  font-style: italic;
-}
-
-.tiptap ul, .tiptap ol {
-  padding-left: 1.5rem;
-}
-
-.tiptap li {
-  margin-bottom: 0.5rem;
+  opacity: 0.4;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  font-weight: 400;
 }
 
 /* Custom Selection */

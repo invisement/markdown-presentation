@@ -1,27 +1,40 @@
-# Tiptap Editor Specification
+# Markdown Editor Specification
 
-## Technical Stack
-- **Framework**: Tiptap v2 (ProseMirror-based).
-- **Runtime**: Deno (Server-side), Browser-native (Client-side).
-- **Dependencies**: 
-  - `@tiptap/core`
-  - `@tiptap/starter-kit`
-  - `@tiptap/extension-markdown` (or `tiptap-markdown` for MD support).
-- **Module Resolution**: JSDelivr ESM CDN.
+This document outlines the desired outcome, requirements, and criteria for the modular markdown editors (e.g., Tiptap, EasyMDE).
 
-## Architecture
-- **`mod.ts`**: Entry point for the editor component.
-- **`index.ts`**: Core logic for initializing and managing the editor state.
-- **`index.css`**: Premium styling, glassmorphism, and modern typography.
-- **`index.html`**: Dev-only wrapper for testing.
+## Core Philosophy
+The editor should feel like a natural extension of the viewer, balancing "Premium" aesthetics with extreme maintenance "Lightness".
 
-## Features (Phase 1)
-1. **Initialization**: Create an editor instance on a target DOM element.
-2. **Markdown Sync**: Method to get/set Markdown content.
-3. **Menu Bar**: Floating or fixed toolbar with essential formatting.
-4. **Theme**: Dark mode by default with high-contrast accents.
+## Requirements & Criteria
 
-## Data Flow
-1. Parent app passes Markdown string to `Editor.setContent(md)`.
-2. Editor converts MD to ProseMirror Document.
-3. On update, Editor emits `contentUpdate` event with current Markdown.
+### 1. Visual Feel & Continuity
+- **Viewer Alignment**: The editor's look and feel should be similar (but not identical) to the presentation viewer.
+- **Muted Markers**:
+    - Markdown syntax markers (e.g., `**`, `#`, `>`) must remain visible.
+    - Markers should be styled to be **very small and grey (muted)**.
+    - The actual style (Bold, Header, etc.) must still be applied to the text while the markers are visible.
+    - *Goal*: Provide the clarity of raw markdown with the visual feedback of a WYSIWYG.
+- **html tag**: custom html tag should be styled (either muted or highlighted).
+
+### 2. Syntax Highlighting
+- **Minimalist Approach**: Implement minimal syntax highlighting for code blocks.
+- **Readability**: The highlighting should serve only to improve readability, not to be a full IDE-like experience.
+- **Maintenance**: Avoid micromanagement. No complex custom lexers or heavy reliance on manual regex. Use the editor engine's native capabilities or lightweight libraries.
+
+### 3. Lightness & Maintenance
+- **Prioritize Simplicity**: "Ultra-light to light" is the preferred weight.
+- **Easily Managed**: The codebase must be easy to manage and maintain over time.
+- **Native ESM**: Leverage Deno 2 workspaces and native browser modules where possible.
+
+### 4. Technical Integration (The Contract)
+All editors must implement a unified interface to be swappable:
+- `init(element: HTMLElement, options: EditorOptions)`
+- `getValue(): string`
+- `setValue(content: string)`
+- `focus()`
+- `destroy()`
+
+## Accepted Implementation Strategies
+- **Tiptap (ProseMirror)**: Best for extensions features and granular control over markers.
+- **EasyMDE (CodeMirror)**: Best for a robust, traditional markdown experience.
+- **ProseMirror (Raw)**: For when extreme lightness and custom marker logic are required.

@@ -9,7 +9,9 @@ Modular for development, yet capable of being bundled into a single-file offline
 
 *   **Engine:** [Husk Framework](./husk/README.md) (Smart Lazy & Incremental Build).
 *   **Runtime:** Deno 2.7+.
-*   **Editor:** [Markdown Editor](./editor-easymde/mod.ts).
+*   **Editor Options:** 
+    - [EasyMDE](./editor-easymde/mod.ts) (Legacy/Simple).
+    - [ProseMirror](./editor-prose/README.md) (Explicit/Pro - **Current Focus**).
 *   **Rendering:** Marked (GFM), Mermaid, Graphviz (WASM).
 
 ## Application Architecture
@@ -30,7 +32,13 @@ digraph AppArchitecture {
 
         UI [label="UI Core\n(ui/index.ts)", fillcolor="#ffffff", style=bold];
         Server [label="Entry Point\n(server.ts)", fillcolor="#ffffff"];
-        Editor [label="Editor Module\n(editor-easymde)", fillcolor="#ffffff"];
+        
+        subgraph cluster_editors {
+            label="Editor Options";
+            style=dashed;
+            EasyMDE [label="EasyMDE Module"];
+            ProseMirror [label="ProseMirror Module\n(Explicit/Pro)", fillcolor="#fff9c4", style=bold];
+        }
     }
 
     subgraph cluster_husk {
@@ -43,7 +51,8 @@ digraph AppArchitecture {
 
     Server -> HuskCore [label="Configures"];
     HuskCore -> UI [label="Serves"];
-    UI -> Editor [label="Controls"];
+    UI -> ProseMirror [label="Controls (Current)"];
+    UI -> EasyMDE [label="Controls (Fallback)"];
     HuskCore -> "ui-dist/" [label="Manages"];
 }
 ```
