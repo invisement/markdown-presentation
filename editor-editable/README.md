@@ -31,14 +31,16 @@ We have successfully implemented the core architecture using a **Type-Driven Ser
     - [x] Map Service-to-Service method dependencies.
     - [x] Map PubSub event-flow (Publisher -> Topic -> Subscriber).
     - [x] Enforce architectural invariants through visualization.
-- [ ] **Iteration 5**: Editor Logic Decoupling.
 
 
-### 4. [ ] Remove event: tables, images, etc.
+### 5. [ ] Iteration 5: Logical Decoupling & SOLID Refactoring
+The current logic graph reveals complex, multi-service relationships. This iteration focuses on simplifying these interactions:
+- **SOLID Principles**: Aim for "Open for Extension, Closed for Modification." We will explore patterns to extend service behavior without mutating existing core classes.
+- **Narrative Interfaces**: Simplify agent (interface) contracts. A service should "tell a story" to its neighbors with minimal, focused methods.
+- **Complexity Reduction**: Use the logic-graph to identify and eliminate direct service-to-service coupling in favor of cleaner event-driven patterns.
 
-### 5. [ ] Generic Synatc Highlighing for code block
-
-### 6. [ ] Add event: TBD
+- [ ] Generic Syntax Highlighting for code blocks.
+- [ ] Direct file storage integration.
 
 
 ## Architecture

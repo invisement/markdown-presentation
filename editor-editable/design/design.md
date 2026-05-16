@@ -83,28 +83,15 @@ While much of the system's structure is governed by direct service orchestration
 - **Marker Mutations**: When an `md-ctrl` element is modified, it publishes to the `markerChanged` topic.
 - **Reactive Actions**: The `EditorOrchestrator` subscribes to these topics to perform surgical updates, such as syncing paired markers or swapping block tags.
 
-### Beyond the Bus: Logical Dependency
-It is important to note that PubSub is only one layer of the software logic. The total **Logical Dependency** of the system—which we aim to capture in the dependency graph—includes:
-- **Direct Function Calls**: Synchronous interactions between services (e.g., `EditorOrchestrator` calling `DomServicer.swapNodes`).
-- **Web Component Hooks**: Lifecycle logic within `connectedCallback` and `disconnectedCallback`.
-- **External Effects**: Direct calls to browser APIs like `window.getSelection()` or `document.replaceWith()`.
+### Behavioral Traceability
+Structural graphs (imports) only tell half the story. To maintain architectural integrity, we use the **Husk Logic-Graph** utility to visualize real-time behavior.
 
-The purpose of the **Method Dependency Graph** (Iteration 4) is to visualize *all* these relationships, ensuring that both event-driven flows and direct method calls remain traceable and maintainable.
-
-
-### Method Dependency Graph
-
-To ensure behavioral integrity, we use the `husk/utils/logic-graph.ts` utility to generate a **Logical Dependency Graph**. This tool performs static analysis to map:
-
-1.  **Service-to-Service Calls**: Direct method invocations between classes like `EditorOrchestrator` and `DomServicer`.
-2.  **PubSub Flows**: Explicit mapping of `Publisher -> Topic -> Subscriber`, making the "hidden" event-driven logic visible and traceable.
-3.  **Browser API Surface**: Tracking where and how we interact with `document`, `window`, and `MutationObserver`.
+- **Logical Flow**: We prioritize the `Publisher -> Topic -> Subscriber` flow over internal wiring.
+- **Interactive Truth**: The generated `reports/logic-graph.dot` includes interactive `URL` and `tooltip` attributes, allowing developers to jump directly from a node in the graph to the corresponding source file.
+- **Noise Suppression**: Orchestration logic (like `setupFlow` or `main`) is suppressed to keep the graph focused on pure business logic interactions between services and Browser APIs.
+- **Invariant Enforcement**: Any direct cross-service coupling that appears in the graph without an event-driven justification is a candidate for refactoring in Iteration 5.
 
 This graph serves as our **Architectural Truth**, allowing us to verify that logic flows correctly and that invariants (such as direct DOM manipulation outside of `DomServicer`) are strictly avoided.
-we can dicuss how to get a list of targeted ("important or crucial or interesting") method/functions/objects.
-When we have them, a little text parser in js or go can tracerse line by line. first find the context (which class.method this line belongs too) then bag all targeted functions/method/object that the line calls for that context. 
-
-
 
 
 
