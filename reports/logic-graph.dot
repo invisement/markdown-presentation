@@ -27,7 +27,7 @@ digraph logic {
     "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved"];
   }
   subgraph "cluster_pubsub_ts_Module" {
-    label = "Module";
+    label = "Module: pubsub.ts";
     "pubsub.ts:Module:setupFlow" [label="setupFlow"];
   }
   subgraph "cluster_MarkdownParser" {
