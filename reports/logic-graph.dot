@@ -19,14 +19,19 @@ digraph logic {
   subgraph "cluster_DomServicer" {
     label = "DomServicer";
     "dom-servicer.ts:DomServicer:replaceNode" [label="replaceNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:swapNodes" [label="swapNodes", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
     "dom-servicer.ts:DomServicer:removeNode" [label="removeNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
     "dom-servicer.ts:DomServicer:unwrapNode" [label="unwrapNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
     "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:createNode" [label="createNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:attachObserver" [label="attachObserver", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
     "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
+    "markdown-parser.ts:MarkdownParser:parseDocument" [label="parseDocument", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+    "markdown-parser.ts:MarkdownParser:parseBlock" [label="parseBlock", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
     "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
   }
   subgraph cluster_events {
@@ -46,20 +51,30 @@ digraph logic {
   "Topic:markerChanged" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
   "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
   "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
-  "dom-servicer.ts:DomServicer:clearAndAppend" -> "Browser:window";
+  "dom-servicer.ts:DomServicer:attachObserver" -> "Browser:MutationObserver";
+  "dom-servicer.ts:DomServicer:createNode" -> "Browser:document";
   "dom-servicer.ts:DomServicer:onMarkerMutation" -> "Topic:markerChanged";
-  "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Browser:MutationObserver";
-  "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Browser:document";
   "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Topic:markerRemoved";
   "dom-servicer.ts:DomServicer:replaceNode" -> "Browser:window";
+  "dom-servicer.ts:DomServicer:swapNodes" -> "Browser:window";
+  "dom-servicer.ts:DomServicer:swapNodes" -> "dom-servicer.ts:DomServicer:createNode";
   "dom-servicer.ts:MdCtrl:syncContent" -> "Browser:customElements";
   "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "dom-servicer.ts:DomServicer:replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "markdown-parser.ts:MarkdownParser:parseBlock";
+  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "markdown-parser.ts:MarkdownParser:parseDocument";
   "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "Browser:fetch";
   "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "dom-servicer.ts:DomServicer:clearAndAppend";
   "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" -> "dom-servicer.ts:DomServicer:replaceNode";
   "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" -> "dom-servicer.ts:MdCtrl:syncContent";
   "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" -> "dom-servicer.ts:DomServicer:replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" -> "dom-servicer.ts:DomServicer:swapNodes";
   "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:removeNode";
   "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:unwrapNode";
+  "markdown-parser.ts:MarkdownParser:parseBlock" -> "dom-servicer.ts:DomServicer:createNode";
+  "markdown-parser.ts:MarkdownParser:parseBlock" -> "markdown-parser.ts:MarkdownParser:parseInline";
+  "markdown-parser.ts:MarkdownParser:parseDocument" -> "Browser:document";
+  "markdown-parser.ts:MarkdownParser:parseDocument" -> "dom-servicer.ts:DomServicer:createNode";
+  "markdown-parser.ts:MarkdownParser:parseDocument" -> "markdown-parser.ts:MarkdownParser:parseBlock";
   "markdown-parser.ts:MarkdownParser:parseInline" -> "Browser:document";
+  "markdown-parser.ts:MarkdownParser:parseInline" -> "dom-servicer.ts:DomServicer:createNode";
 }
