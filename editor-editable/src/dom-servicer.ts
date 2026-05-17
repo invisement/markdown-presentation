@@ -3,32 +3,9 @@
  * This file contains both the Face (Contract) and the Doer (Implementation).
  */
 
+import { SemanticTag } from './semantic-tag.ts';
+
 export type MdNodeTag = 'P' | 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6' | 'LI' | 'B' | 'I' | 'CODE' | 'PRE';
-
-/**
- * Contract for the md-ctrl custom element (The Marker).
- */
-export interface MarkerFace extends HTMLElement {
-    syncContent(val: string): void;
-    _observer?: MutationObserver;
-}
-
-/**
- * Payload for marker modification topics.
- */
-export type MarkerTopicValue = {
-    marker: MarkerFace;
-    content: string;
-    parent: HTMLElement;
-};
-
-/**
- * Payload for marker removal topics.
- */
-export type MarkerRemovedTopicValue = {
-    marker: HTMLElement;
-    lastParent: HTMLElement;
-};
 
 /**
  * Contract for DOM manipulation and structural changes.
@@ -42,11 +19,6 @@ export interface DomServicerFace {
     swapNodes(node: HTMLElement, newTag: MdNodeTag): HTMLElement;
     unwrapNode(node: HTMLElement): void;
 
-    /**
-     * PASSIVE HOOKS: Wire these to topics in pubsub.ts
-     */
-    onMarkerMutation(cb: (v: MarkerTopicValue) => void): void;
-    onMarkerRemoved(cb: (v: MarkerRemovedTopicValue) => void): void;
 }
 
 const TAG_MAP: Record<string, string> = {
@@ -56,84 +28,24 @@ const TAG_MAP: Record<string, string> = {
     'pre': 'block',
     'span': 'html-tag',
     'b': 'inline', 'i': 'inline', 'code': 'inline',
-    'md-ctrl': 'md-ctrl'
+    'semantic-tag': 'semantic-tag'
 };
 
-class MdCtrl extends HTMLElement implements MarkerFace {
-    #lastParent: HTMLElement | null = null;
-    _observer?: MutationObserver;
-    static onRemoved?: (v: MarkerRemovedTopicValue) => void;
-
-    connectedCallback() {
-        this.#lastParent = this.parentElement;
-    }
-
-    disconnectedCallback() {
-        const lastParent = this.#lastParent;
-        const marker = this;
-        queueMicrotask(() => {
-            if (this.isConnected || !lastParent) return;
-            if (MdCtrl.onRemoved) MdCtrl.onRemoved({ marker, lastParent });
-        });
-    }
-
-    syncContent(val: string) {
-        if (!this._observer) {
-            this.textContent = val;
-            return;
-        }
-        this._observer.disconnect();
-        this.textContent = val;
-        this._observer.observe(this, { characterData: true, childList: true, subtree: true });
-    }
-}
-
-if (!customElements.get('md-ctrl')) {
-    customElements.define('md-ctrl', MdCtrl);
-}
 
 export class DomServicer implements DomServicerFace {
-    private _mutationCb?: (v: MarkerTopicValue) => void;
-
-    onMarkerMutation(cb: (v: MarkerTopicValue) => void) {
-        this._mutationCb = cb;
-    }
-
-    onMarkerRemoved(cb: (v: MarkerRemovedTopicValue) => void) {
-        MdCtrl.onRemoved = cb;
-    }
 
     createNode(tag: string, text?: string, className?: string): HTMLElement {
         const type = TAG_MAP[tag.toLowerCase()] || 'inline';
-        const el = (type === 'md-ctrl')
-            ? document.createElement('md-ctrl')
-            : document.createElement(tag);
+        const el = (type === 'semantic-tag')
+                ? document.createElement('semantic-tag')
+                : document.createElement(tag);
 
         if (text) el.textContent = text;
         if (className) el.classList.add(className);
 
-        if (type === 'md-ctrl') {
-            this.attachObserver(el as MarkerFace, () => {
-                if (this._mutationCb) {
-                    this._mutationCb({
-                        marker: el as MarkerFace,
-                        content: el.textContent || '',
-                        parent: el.parentElement!
-                    });
-                }
-            });
-        }
-
         return el;
     }
 
-    private attachObserver(node: MarkerFace, callback: () => void): MutationObserver {
-        const config = { characterData: true, childList: true, subtree: true };
-        const obs = new MutationObserver(callback);
-        obs.observe(node, config);
-        node._observer = obs;
-        return obs;
-    }
 
     replaceNode(oldNode: HTMLElement, newNode: Node | DocumentFragment) {
         const sel = window.getSelection();

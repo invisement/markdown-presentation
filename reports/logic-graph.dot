@@ -25,19 +25,12 @@ digraph logic {
     "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
     "dom-servicer.ts:DomServicer:createNode" [label="createNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
     "dom-servicer.ts:DomServicer:attachObserver" [label="attachObserver", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:onMarkerMutation" [label="onMarkerMutation", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:onMarkerRemoved" [label="onMarkerRemoved", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
     "markdown-parser.ts:MarkdownParser:parseDocument" [label="parseDocument", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
     "markdown-parser.ts:MarkdownParser:parseBlock" [label="parseBlock", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
     "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
-  }
-  subgraph cluster_events {
-    label = "Events / PubSub";
-    "Topic:markerChanged" [label="markerChanged", URL="pubsub.ts", tooltip="pubsub.ts"];
-    "Topic:markerRemoved" [label="markerRemoved", URL="pubsub.ts", tooltip="pubsub.ts"];
   }
   subgraph cluster_browser {
     label = "Browser APIs";
@@ -47,15 +40,9 @@ digraph logic {
     "Browser:MutationObserver" [label="MutationObserver"];
     "Browser:window" [label="window"];
   }
-  "Topic:markerChanged" -> "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers";
-  "Topic:markerChanged" -> "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure";
-  "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock";
-  "Topic:markerRemoved" -> "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle";
   "dom-servicer.ts:DomServicer:attachObserver" -> "Browser:MutationObserver";
   "dom-servicer.ts:DomServicer:createNode" -> "Browser:document";
   "dom-servicer.ts:DomServicer:createNode" -> "dom-servicer.ts:DomServicer:attachObserver";
-  "dom-servicer.ts:DomServicer:onMarkerMutation" -> "Topic:markerChanged";
-  "dom-servicer.ts:DomServicer:onMarkerRemoved" -> "Topic:markerRemoved";
   "dom-servicer.ts:DomServicer:replaceNode" -> "Browser:window";
   "dom-servicer.ts:DomServicer:swapNodes" -> "Browser:window";
   "dom-servicer.ts:DomServicer:swapNodes" -> "dom-servicer.ts:DomServicer:createNode";

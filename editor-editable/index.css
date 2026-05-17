@@ -27,7 +27,72 @@ body {
 	caret-color: #e94560;
 }
 
-/* Block elements */
+/* Custom Elements Display */
+semantic-tag { display: inline; }
+semantic-tag.p, 
+semantic-tag.h1, semantic-tag.h2, semantic-tag.h3, 
+semantic-tag.li, semantic-tag.pre { 
+    display: block; 
+    margin: 0.3em 0; 
+}
+
+/* Block elements (Classes) */
+#editor .h1 {
+	font-size: 1.8em;
+	color: #e94560;
+	margin: 0.4em 0;
+	display: block;
+}
+
+#editor .h2 {
+	font-size: 1.5em;
+	color: #e94560;
+	margin: 0.3em 0;
+	display: block;
+}
+
+#editor .h3 {
+	font-size: 1.25em;
+	color: #e94560;
+	margin: 0.2em 0;
+	display: block;
+}
+
+#editor .p {
+	margin: 0.3em 0;
+	display: block;
+}
+
+#editor .li {
+	padding-left: 1em;
+	display: block;
+}
+
+#editor .li::before {
+	content: ''; /* We keep the .marker as the marker */
+}
+
+/* Inline formatting (Classes) */
+#editor .b {
+	color: #f5f5f5;
+	font-weight: 700;
+}
+
+#editor .i {
+	color: #ccc;
+	font-style: italic;
+}
+
+#editor .code {
+	background: #0d1b2a;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-family: 'Fira Code', monospace;
+	font-size: 0.9em;
+	color: #7ec8e3;
+}
+
+/* Legacy Tag Support (for safety during transition) */
 #editor h1 {
 	font-size: 1.8em;
 	color: #e94560;
@@ -100,7 +165,7 @@ body {
 }
 
 /* Markdown control chars — muted */
-md-ctrl {
+.marker {
 	color: #555;
 	font-family: 'Fira Code', monospace;
 	font-size: 0.8em;

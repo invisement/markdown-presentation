@@ -1,4 +1,5 @@
 import { DomServicerFace } from './dom-servicer.ts';
+import { SemanticTag } from './semantic-tag.ts';
 
 /**
  * Contract for Markdown grammar and parsing.
@@ -36,17 +37,29 @@ export class MarkdownParser implements MarkdownParserFace {
         while (i < lines.length) {
             const line = lines[i];
             if (Schema.BLOCK_CODE.test(line)) {
-                const pre = this.dom.createNode('pre', '', 'code-block');
-                pre.appendChild(this.dom.createNode('md-ctrl', line + '\n'));
-                const content = this.dom.createNode('div');
-                content.classList.add('code-content');
+                let codeContent = '';
                 i++;
                 while (i < lines.length && !Schema.BLOCK_CODE.test(lines[i])) {
-                    content.appendChild(document.createTextNode(lines[i] + '\n'));
+                    codeContent += lines[i] + '\n';
                     i++;
                 }
-                pre.appendChild(content);
-                if (i < lines.length) pre.appendChild(this.dom.createNode('md-ctrl', lines[i]));
+                const endMarker = i < lines.length ? lines[i] : '';
+                
+                const pre = new SemanticTag('```\n', codeContent);
+                // Fix up the structure for code block specific needs
+                const contentSpan = pre.querySelector('.content');
+                if (contentSpan) {
+                    const div = document.createElement('div');
+                    div.className = 'code-content';
+                    div.textContent = contentSpan.textContent;
+                    pre.replaceChild(div, contentSpan);
+                }
+                
+                if (endMarker === '') {
+                    const endSpan = pre.querySelector('.marker.end');
+                    if (endSpan) endSpan.textContent = '';
+                }
+                
                 fragment.appendChild(pre);
                 i++;
                 continue;
@@ -60,18 +73,17 @@ export class MarkdownParser implements MarkdownParserFace {
     parseBlock(line: string): HTMLElement {
         const hMatch = line.match(Schema.BLOCK_HEADER);
         if (hMatch) {
-            const el = this.dom.createNode('h' + hMatch[1].length);
-            el.appendChild(this.dom.createNode('md-ctrl', hMatch[1] + ' '));
-            this.parseInline(line.slice(hMatch[1].length + 1), el);
+            const el = new SemanticTag(hMatch[1] + ' ', '');
+            this.parseInline(line.slice(hMatch[1].length + 1), el.querySelector('.content') as HTMLElement);
             return el;
         }
         if (Schema.BLOCK_LIST.test(line)) {
-            const el = this.dom.createNode('li');
-            el.appendChild(this.dom.createNode('md-ctrl', '- '));
-            this.parseInline(line.slice(2), el);
+            const el = new SemanticTag('- ', '');
+            this.parseInline(line.slice(2), el.querySelector('.content') as HTMLElement);
             return el;
         }
-        const p = this.dom.createNode('p');
+        const p = new SemanticTag();
+        p.className = 'p';
         this.parseInline(line, p);
         return p;
     }
@@ -80,8 +92,11 @@ export class MarkdownParser implements MarkdownParserFace {
         const tokens = text.split(Schema.HTML_TAG);
         tokens.forEach(token => {
             if (Schema.HTML_TAG.test(token)) {
-                const className = token.startsWith('<!--') ? 'html-comment' : 'html-tag';
-                parent.appendChild(this.dom.createNode('md-ctrl', token, className));
+                const className = token.startsWith('<!--') ? 'marker html-comment' : 'marker html-tag';
+                const span = document.createElement('span');
+                span.className = className;
+                span.textContent = token;
+                parent.appendChild(span);
                 return;
             }
             let lastIdx = 0;
@@ -91,12 +106,10 @@ export class MarkdownParser implements MarkdownParserFace {
                 if (match.index > lastIdx) parent.appendChild(document.createTextNode(token.slice(lastIdx, match.index)));
                 const marker = match[1] || match[3] || match[5];
                 const content = match[2] || match[4] || match[6];
-                const tag = match[1] ? 'b' : (match[3] ? 'i' : 'code');
-                const wrapper = this.dom.createNode(tag);
-                wrapper.appendChild(this.dom.createNode('md-ctrl', marker));
-                wrapper.appendChild(document.createTextNode(content));
-                wrapper.appendChild(this.dom.createNode('md-ctrl', marker));
+                
+                const wrapper = new SemanticTag(marker, content);
                 parent.appendChild(wrapper);
+                
                 lastIdx = combinedRegex.lastIndex;
             }
             if (lastIdx < token.length) parent.appendChild(document.createTextNode(token.slice(lastIdx)));

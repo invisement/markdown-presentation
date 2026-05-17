@@ -33,14 +33,17 @@ We have successfully implemented the core architecture using a **Type-Driven Ser
     - [x] Enforce architectural invariants through visualization.
 
 
-### 5. [ ] Iteration 5: Logical Decoupling & SOLID Refactoring
-The current logic graph reveals complex, multi-service relationships. This iteration focuses on simplifying these interactions:
-- **SOLID Principles**: Aim for "Open for Extension, Closed for Modification." We will explore patterns to extend service behavior without mutating existing core classes.
-- **Narrative Interfaces**: Simplify agent (interface) contracts. A service should "tell a story" to its neighbors with minimal, focused methods.
-- **Complexity Reduction**: Use the logic-graph to identify and eliminate direct service-to-service coupling in favor of cleaner event-driven patterns.
+### 5. [x] Iteration 5: Autonomous Components & Logical Decoupling
+- [x] **Autonomous Components**: Replaced `md-tag` with a self-managing `SemanticTag` class that handles its own Light DOM (`.marker`, `.content`).
+- [x] **Zero Tag Swapping**: Eliminated global tag-swapping. The component dynamically changes its CSS class based on its internal markers.
+- [x] **Event Encapsulation**: Attached `MutationObserver`s locally inside the component instead of relying on a global event bus for syntax parsing.
+- [x] **Code Freeze Registry**: Established strict SOLID modification protocols in `design/design.md` for freezing core structural files.
 
-- [ ] Generic Syntax Highlighting for code blocks.
-- [ ] Direct file storage integration.
+
+### [ ] Iteration 6. Logical Decoupling & SOLID Refactoring
+we are going to focus on pubsub, events
+
+
 
 
 ## Architecture
@@ -64,3 +67,13 @@ This project is part of a Deno 2 workspace. To develop locally:
 ## Verification Invariant
 - **Roundtrip**: `editor.innerText` must always return the valid original Markdown source.
 - **Muted Syntax**: `md-ctrl` elements should be visually distinct (grey/small/mono) but fully editable.
+
+## Design Principles
+
+### Fail-Fast / Trust the Happy Path
+We strictly avoid defensive programming that "silences" structural errors. If an element's invariant is broken (e.g., a required marker span is unexpectedly deleted), we do **not** use early returns or optional chaining (e.g. `if (!element) return;`) to hide the error under the carpet. 
+
+We trust the happy path and allow the application to throw a loud exception (e.g. `TypeError: Cannot read properties of null`). This "fail-fast" principle ensures that impossible-to-debug zombie states never exist in production, forcing us to correctly address the root structural bugs immediately during development.
+
+### Code Freeze & SOLID Principles
+We maintain a strict registry of top-level classes and their current status (Active vs. Frozen) in **`design/design.md`**. If a class is marked as **FROZEN** (like `SemanticTag`), no code changes may be made to it without explicit consultation and approval. We adhere strictly to the Open/Closed Principle.

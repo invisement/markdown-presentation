@@ -1,29 +1,27 @@
-<!-- Expected DOM Structure for sample.md in Iteration 3 -->
+<!-- Expected DOM Structure for sample.md in Iteration 5 -->
 
-<h1><md-ctrl># </md-ctrl>Hello <b><md-ctrl>**</md-ctrl>world<md-ctrl>**</md-ctrl></b></h1>
-<p>A line with <code><md-ctrl>`</md-ctrl>code<md-ctrl>`</md-ctrl></code> and
-    <i><md-ctrl>*</md-ctrl>italic<md-ctrl>*</md-ctrl></i> text
-</p>
-<ul>
-    <li><md-ctrl>- </md-ctrl>first item</li>
-    <li><md-ctrl>- </md-ctrl><b><md-ctrl>**</md-ctrl>bold<md-ctrl>**</md-ctrl></b> item</li>
-</ul>
-<p><br></p>
-<p><md-ctrl class="html-tag">&lt;!--</md-ctrl></p>
-<p>Sample markdown for iteration 3 </p>
-<p><md-ctrl class="html-tag">--&gt;</md-ctrl></p>
-<p><br></p>
-<p><md-ctrl class="html-tag">&lt;div style="column-count: 2;"&gt;</md-ctrl></p>
-<p><br></p>
-<p>Hey up <code><md-ctrl>`</md-ctrl>code<md-ctrl>`</md-ctrl></code></p>
-<pre><md-ctrl>```js</md-ctrl>
-<div class="code-content">functionName (x, x) {
+<semantic-tag class="h1"><span class="marker start"># </span><span class="content">Hello <semantic-tag class="b"><span class="marker start">**</span><span class="content">world</span><span class="marker end">**</span></semantic-tag></span></semantic-tag>
+<semantic-tag class="p"><span class="marker start"></span><span class="content">A line with <semantic-tag class="code"><span class="marker start">`</span><span class="content">code</span><span class="marker end">`</span></semantic-tag> and
+    <semantic-tag class="i"><span class="marker start">*</span><span class="content">italic</span><span class="marker end">*</span></semantic-tag> text</span>
+</semantic-tag>
+<semantic-tag class="li"><span class="marker start">- </span><span class="content">first item</span></semantic-tag>
+<semantic-tag class="li"><span class="marker start">- </span><span class="content"><semantic-tag class="b"><span class="marker start">**</span><span class="content">bold</span><span class="marker end">**</span></semantic-tag> item</span></semantic-tag>
+
+<semantic-tag class="p"><span class="marker start"></span><span class="content"><br></span></semantic-tag>
+<span class="marker html-comment">&lt;!--</span>
+<semantic-tag class="p"><span class="marker start"></span><span class="content">Sample markdown for iteration 5 </span></semantic-tag>
+<span class="marker html-comment">--&gt;</span>
+<semantic-tag class="p"><span class="marker start"></span><span class="content"><br></span></semantic-tag>
+<span class="marker html-tag">&lt;div style="column-count: 2;"&gt;</span>
+<semantic-tag class="p"><span class="marker start"></span><span class="content"><br></span></semantic-tag>
+<semantic-tag class="p"><span class="marker start"></span><span class="content">Hey up <semantic-tag class="code"><span class="marker start">`</span><span class="content">code</span><span class="marker end">`</span></semantic-tag></span></semantic-tag>
+<semantic-tag class="pre"><span class="marker start">```
+</span><div class="code-content">functionName (x, x) {
     console.log(x, y)
 }
 
 const x = functionName (x, y)
 
-// copmment</div>
-<md-ctrl>```</md-ctrl></pre>
-<p><br></p>
-<p><md-ctrl class="html-tag">&lt;/div&gt;</md-ctrl></p>
+// copmment</div><span class="marker end">```</span></semantic-tag>
+<semantic-tag class="p"><span class="marker start"></span><span class="content"><br></span></semantic-tag>
+<span class="marker html-tag">&lt;/div&gt;</span>

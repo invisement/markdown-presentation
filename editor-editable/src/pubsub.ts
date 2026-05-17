@@ -1,14 +1,8 @@
 import { PubSub } from '../../husk/ui/pubsub.ts';
-import { DomServicerFace, MarkerTopicValue, MarkerRemovedTopicValue } from './dom-servicer.ts';
+import { DomServicerFace } from './dom-servicer.ts';
 import { EditorOrchestratorFace } from './editor-orchestrator.ts';
-
-/**
- * Global topics for the Markdown Editor.
- * These are "Active Variables" that represent the current state of modification.
- */
 export const Topics = {
-    markerChanged: new PubSub<MarkerTopicValue | null>(null),
-    markerRemoved: new PubSub<MarkerRemovedTopicValue | null>(null),
+    // Other global editor topics can be added here
 };
 
 /**
@@ -20,21 +14,7 @@ export function setupFlow(
     orch: EditorOrchestratorFace,
     editorEl: HTMLElement
 ) {
-    // 1. Marker Change Flow
-    Topics.markerChanged.bus(
-        [(cb) => dom.onMarkerMutation(cb)],
-        [(val) => val && orch.syncPairedMarkers(val),
-        (val) => val && orch.transformBlockStructure(val)]
-    );
-
-    // 2. Marker Removal Flow
-    Topics.markerRemoved.bus(
-        [(cb) => dom.onMarkerRemoved(cb)],
-        [(val) => val && orch.reparseCollapsedBlock(val),
-        (val) => val && orch.unwrapInlineStyle(val)]
-    );
-
-    // 3. Raw Block Input Flow
+    // 1. Raw Block Input Flow
     editorEl.addEventListener('input', (e: Event) => {
         let block = e.target as HTMLElement;
         while (block && block.parentElement !== editorEl) {

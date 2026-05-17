@@ -93,6 +93,65 @@ Structural graphs (imports) only tell half the story. To maintain architectural 
 
 This graph serves as our **Architectural Truth**, allowing us to verify that logic flows correctly and that invariants (such as direct DOM manipulation outside of `DomServicer`) are strictly avoided.
 
+## Additional Engineering Principles
 
+### 1. Fail-Fast / Trust the Happy Path
+We strictly avoid defensive programming that "silences" structural errors. If an element's invariant is broken (e.g., a required marker span is unexpectedly deleted), we do **not** use early returns or optional chaining (e.g., `if (!element) return;`) to hide the error under the carpet. 
+
+We trust the happy path and allow the application to throw a loud exception (e.g., `TypeError: Cannot read properties of null`). This "fail-fast" principle ensures that impossible-to-debug zombie states never exist in production, forcing us to correctly address the root structural bugs immediately during development.
+
+### 2. On-Demand Building
+Not every small code change requires a full end-to-end test or build. Do not run the global build command (`deno task dev:build`) reflexively after minor updates. Trust the code changes, and only run full builds when a significant milestone is reached or when explicitly requested.
+
+### 3. Strict Refactoring Definition
+When we say "Refactor", it has a very specific meaning: **No logic or major code changes.** Refactoring means strictly reorganizing existing logic—moving files, splitting classes, stitching components together, renaming, or restructuring. If business logic *must* be changed, we do it *after* the initial refactor is complete, and only with careful deliberation. We do not mix logic changes with structural refactoring.
+
+## Web Components Guidelines
+
+One of the flaws of JS/TS is having too many ways to achieve the same result. To ensure consistency, simplicity, and maximum performance across our custom elements, we strictly adhere to the following patterns:
+
+### 1. Atomic Node Moving & Observer Cleanup
+When moving Web Components within the DOM, **always use `moveBefore`** instead of the legacy `remove()` + `appendChild()` / `insertBefore()` pattern. 
+- Using `moveBefore` ensures an atomic move, preventing `disconnectedCallback` and `connectedCallback` from redundantly firing and disrupting the component's state.
+- Because of this atomic move rule, we **do not manually disconnect `MutationObserver`s** inside `disconnectedCallback`. We completely omit the `disconnectedCallback` and rely on the browser's Garbage Collector to automatically destroy the observer when the element is permanently removed from the DOM.
+- For safety against legacy browser behavior, always guard `connectedCallback` with `if (this.#observer) return;` to prevent duplicate observer attachments.
+
+### 2. Light DOM Construction
+Do not use `document.createElement` when injecting structural spans inside a component's constructor or `buildTemplate` method. Use template strings and `innerHTML` for the structural skeleton, and securely inject user content via `.textContent` on the queried elements. This prevents XSS and HTML corruption (since Markdown characters like `<` are treated as literal text) while maintaining clean, readable component code.
+
+### 3. Element Caching
+Never use `querySelector` inside high-frequency lifecycle methods like `MutationObserver` callbacks. Always query and cache your internal DOM nodes (e.g., `this.#startMarker`) during `buildTemplate` or `connectedCallback`, and use the cached private properties everywhere else.
+
+## Code Freeze & SOLID Modification Protocols
+
+This section lists the top-level objects in our architecture, their responsibilities, and their current modification status. 
+
+**Rule of Thumb:** We adhere strictly to the Open/Closed Principle. We do not modify existing core classes simply to "expand" functionality (e.g., adding a new syntax style). Core logic should only change if the underlying rules or architecture *must* change.
+
+If a class is marked as **FROZEN**, no code changes may be made to it without explicit consultation and confirmation from the project lead.
+
+### 1. `SemanticTag` (`src/semantic-tag.ts`)
+- **Status:** 🔴 **FROZEN**
+- **Responsibility:** The autonomous Web Component that builds its own Light DOM (`.marker`, `.content`), manages its state via CSS classes, and handles its own `MutationObserver` for pair-syncing.
+- **Why it exists:** To decouple syntax reactivity from the global DOM, providing a rock-solid, zero-tag-swap editing experience.
+- **Modification Rule:** Do not touch the observer or rendering logic. If you need a new markdown style, you add a single line to the `getStyleClass` mapping function. The core class is sealed.
+
+### 2. `MarkdownParser` (`src/markdown-parser.ts`)
+- **Status:** 🟡 **ACTIVE** (Nearing Freeze)
+- **Responsibility:** Translates raw Markdown AST into `SemanticTag` instantiations.
+- **Why it exists:** The editor needs a reliable, one-way translator to convert flat strings into our surgical, nested component tree.
+- **Modification Rule:** Can be modified to support new Markdown grammar or fix parsing bugs, but its output signature (returning `SemanticTag` nodes) must not change.
+
+### 3. `EditorOrchestrator` (`src/editor-orchestrator.ts`)
+- **Status:** 🟡 **ACTIVE** (Pending Refactor)
+- **Responsibility:** Manages global editor interactions, such as block-level input handling and loading initial states.
+- **Why it exists:** To route global events that a single `SemanticTag` cannot handle (e.g., a user pressing Enter and splitting a block into two).
+- **Modification Rule:** Open for modification. As components become more autonomous, this class should shrink.
+
+### 4. `DomServicer` (`src/dom-servicer.ts`)
+- **Status:** 🟡 **ACTIVE** (Deprecated Path)
+- **Responsibility:** Originally managed all tag swapping and centralized DOM logic.
+- **Why it exists:** To act as the exclusive agent for DOM manipulation (preventing cursor jumps).
+- **Modification Rule:** Open for modification/deletion. Since `SemanticTag` now handles its own state without swapping tags, `DomServicer`'s role is severely reduced and may be phased out entirely soon.
 
 

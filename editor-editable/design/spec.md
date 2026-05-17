@@ -5,60 +5,51 @@
 ```
 div#editor [contenteditable="true"]
 │
-├── h1
-│   ├── span.md-ctrl  →  "#"
-│   ├── text           →  " Hello "
-│   └── b
-│       ├── span.md-ctrl  →  "**"
-│       ├── text           →  "world"
-│       └── span.md-ctrl  →  "**"
+├── semantic-tag.h1
+│   ├── span.marker.start →  "# "
+│   └── span.content       →  "Hello "
 │
-├── p
-│   ├── text               →  "A line with "
-│   ├── code
-│   │   ├── span.md-ctrl   →  "`"
-│   │   ├── text           →  "code"
-│   │   └── span.md-ctrl   →  "`"
-│   ├── text               →  " and "
-│   ├── span.md-html-tag   →  "<mark>"
-│   ├── text               →  "highlighted"
-│   └── span.md-html-tag   →  "</mark>"
+├── semantic-tag.p
+│   ├── span.marker.start →  ""
+│   └── span.content       →  "A line with "
+│       ├── semantic-tag.code
+│       │   ├── span.marker.start →  "`"
+│       │   ├── span.content       →  "code"
+│       │   └── span.marker.end   →  "`"
+│       ├── text               →  " and "
+│       ├── span.marker.html-tag →  "<mark>"
+│       ├── text               →  "highlighted"
+│       └── span.marker.html-tag →  "</mark>"
 │
-└── ul
-    ├── li
-    │   ├── span.md-ctrl   →  "-"
-    │   └── text           →  " first item"
-    └── li
-        ├── span.md-ctrl   →  "-"
-        ├── text           →  " "
-        ├── b
-        │   ├── span.md-ctrl  →  "**"
-        │   ├── text           →  "bold"
-        │   └── span.md-ctrl  →  "**"
-        └── text           →  " item"
+└── semantic-tag.li
+    ├── span.marker.start  →  "- "
+    └── span.content       →  "first item "
+        └── semantic-tag.b
+            ├── span.marker.start  →  "**"
+            ├── span.content       →  "bold"
+            └── span.marker.end    →  "**"
 ```
 
 ## Translation Rules
 
 ### Block-level (line → wrapper element)
 
-| Markdown pattern       | DOM element         | Control chars in `span.md-ctrl` |
-|------------------------|---------------------|---------------------------------|
-| `# text`               | `<h1>`              | `# `                            |
-| `## text`              | `<h2>`              | `## `                           |
-| `### text`             | `<h3>`              | `### `                          |
-| `- item`               | `<ul><li>`          | `- `                            |
-| `` ``` ``              | `<pre><code>`       | `` ``` ``                       |
-| plain text             | `<p>`               | (none)                          |
+| Markdown pattern       | Component State          | Internal Markers (`span.marker`) |
+|------------------------|--------------------------|---------------------------------|
+| `# text`               | `<semantic-tag class="h1">` | `span.marker.start` ("# ")    |
+| `## text`              | `<semantic-tag class="h2">` | `span.marker.start` ("## ")   |
+| `- item`               | `<semantic-tag class="li">` | `span.marker.start` ("- ")    |
+| `` ``` ``              | `<semantic-tag class="pre">`| `start` (`` ``` ``) + `end`   |
+| plain text             | `<semantic-tag class="p">`  | (empty start marker)          |
 
 ### Inline (within a line)
 
-| Markdown pattern       | DOM element         | Control chars in `span.md-ctrl` |
-|------------------------|---------------------|---------------------------------|
-| `**text**`             | `<b>`               | `**` (open) + `**` (close)      |
-| `*text*`               | `<i>`               | `*` (open) + `*` (close)        |
-| `` `text` ``           | `<code>`            | `` ` `` (open) + `` ` `` (close)|
-| `<tag>text</tag>`      | `<span.md-html-tag>`| `<tag>` + `</tag>` as text      |
+| Markdown pattern       | Component State          | Internal Markers (`span.marker`) |
+|------------------------|--------------------------|---------------------------------|
+| `**text**`             | `<semantic-tag class="b">`  | `start` (`**`) + `end` (`**`)   |
+| `*text*`               | `<semantic-tag class="i">`  | `start` (`*`) + `end` (`*`)     |
+| `` `text` ``           | `<semantic-tag class="code">`| `start` (`` ` ``) + `end` (`` ` ``)|
+| `<tag>text</tag>`      | `span.marker.html-tag`      | (Direct HTML spans, no wrapper) |
 
 ### Key Invariant
 
