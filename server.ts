@@ -11,6 +11,7 @@ router.push("/easymde/:path*", "editor-easymde/dist/:path");
 router.push("/tiptap/:path*", "editor-tiptap/dist/:path");
 router.push("/editor-prose/:path*", "editor-prose/dist/:path");
 router.push("/editor-editable/:path*", "editor-editable/dist/:path");
+
 router.push("/:path*", "ui/dist/:path");
 
 Deno.serve(router.serverInfo(), async (req) => {

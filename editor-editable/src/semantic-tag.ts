@@ -1,133 +1,151 @@
 /**
  * semantic-tag.ts — The Autonomous Controller for Markdown structures.
- * It manages its own internal Light DOM and attaches MutationObservers 
- * specifically to its syntax markers.
  */
 
 /**
- * Determine the CSS class based on marker content.
+ * SemanticRules — Centralized lookup for AST types, CSS classes, and pairing markers.
  */
-function getStyleClass(marker: string): string {
-    const m = marker.trim();
-    if (m === '**') return 'b';
-    if (m === '*') return 'i';
-    if (m === '`') return 'code';
-    if (m.startsWith('#')) return 'h' + m.length;
-    if (m === '-') return 'li';
-    if (m === '```') return 'pre';
-    if (m.startsWith('<')) return 'html-tag';
-    return 'p';
-}
-
-/**
- * Determine the content for the pairing marker.
- */
-function getPairingContent(marker: string, isStart: boolean): string {
-    const m = marker.trim();
-    
-    // Symmetric Markdown Pairs
-    if (m === '**' || m === '*' || m === '`' || m === '```') return m;
-    
-    // HTML Tag Pair Matching
-    if (m.startsWith('<')) {
-        const match = m.match(/<(\/?[a-z1-6]+)/i);
-        if (match) {
-            const tag = match[1].replace('/', '');
-            return isStart ? `</${tag}>` : `<${tag}>`;
+export const SemanticRules = {
+    /**
+     * 1. AST -> Marker: Maps a parser AST type to its default start marker.
+     */
+    astToMarker(type: string, depth?: number): string {
+        switch (type) {
+            case 'heading': return '#'.repeat(depth || 1) + ' ';
+            case 'list_item': return '- ';
+            case 'strong': return '**';
+            case 'em': return '*';
+            case 'codespan': return '`';
+            case 'code': return '```\n';
+            default: return '';
         }
-    }
-    
-    // Pattern 2 (Leading only)
-    return '';
-}
+    },
 
-/**
- * SemanticTag — The unified, autonomous web component.
- */
-export class SemanticTag extends HTMLElement {
-    #observer?: MutationObserver;
-    #isSyncing = false;
-    
-    // Cached DOM Nodes
-    #startMarker!: HTMLElement;
-    #contentSpan!: HTMLElement;
-    #endMarker?: HTMLElement;
+    /**
+     * 2. Marker -> CSS Class: Maps a start marker to its CSS presentation class.
+     */
+    markerToClass(marker: string, existingClass?: string): string {
+        // Browsers inject non-breaking spaces (\u00a0) in contenteditable. We must strip them.
+        const m = marker.trim().replace(/\u00a0/g, '');
 
-    constructor(marker?: string, content?: string) {
-        super();
-        // If instantiated with data via AST parser, build the internal DOM immediately.
-        if (marker !== undefined) {
-            this.buildTemplate(marker, content || '');
-        }
-    }
-
-    private buildTemplate(marker: string, content: string) {
-        this.className = getStyleClass(marker);
-        const endText = getPairingContent(marker, true);
-
-        // Build the structural HTML template
-        this.innerHTML = `
-            <span class="marker start"></span>
-            <span class="content"></span>
-            ${endText ? '<span class="marker end"></span>' : ''}
-        `;
-
-        // Safely inject text content and cache the DOM references
-        this.#startMarker = this.querySelector('.marker.start') as HTMLElement;
-        this.#startMarker.textContent = marker;
-        
-        this.#contentSpan = this.querySelector('.content') as HTMLElement;
-        this.#contentSpan.textContent = content;
-        
-        if (endText) {
-            this.#endMarker = this.querySelector('.marker.end') as HTMLElement;
-            this.#endMarker.textContent = endText;
-        }
-    }
-
-
-    connectedCallback() {
-        // Prevent duplicate observers if the node is moved using legacy DOM methods
-        if (this.#observer) return;
-
-        // If instantiated via HTML parsing instead of constructor, cache the nodes now
-        if (!this.#startMarker) {
-            this.#startMarker = this.querySelector('.marker.start') as HTMLElement;
-            this.#contentSpan = this.querySelector('.content') as HTMLElement;
-            const end = this.querySelector('.marker.end');
-            if (end) this.#endMarker = end as HTMLElement;
+        if (m === '') {
+            if (existingClass) {
+                const isBlock = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p'].includes(existingClass);
+                return isBlock ? 'p' : 'span';
+            }
+            return 'p';
         }
 
-        if (!this.#startMarker) return;
+        if (m === '**') return 'b';
+        if (m === '*') return 'i';
+        if (m === '`') return 'code';
+        if (m.startsWith('#')) return 'h' + m.length;
+        if (m === '-') return 'li';
+        if (m.startsWith('```')) return 'pre';
+        if (m.startsWith('<')) return 'html-tag';
 
-        // Only attach observer to the specific marker nodes
-        this.#observer = new MutationObserver(() => this.handleMutation());
-        this.#observer.observe(this.#startMarker, { characterData: true, subtree: true, childList: true });
-        if (this.#endMarker) {
-            this.#observer.observe(this.#endMarker, { characterData: true, subtree: true, childList: true });
-        }
-    }
+        return 'p';
+    },
 
-    private handleMutation() {
-        if (this.#isSyncing) return;
+    /**
+     * 3. Pairing Rules: Determines the expected opposite marker (symmetric or HTML tags).
+     */
+    getPair(marker: string, isStart: boolean, currentOpposite?: string): string {
+        const selfPairs = ['*', '`', "'", '"', '~']
+        const matchingStarts = ["{", "[", "(", "<"]
+        const matchingEnds = ["}", "]", ")", ">"]
 
-        // We trust the happy path. If startMarker is missing, the component's invariant is broken
-        // and we want it to throw a loud TypeError (Fail-Fast) rather than silently ignoring it.
-        const markerText = this.#startMarker.textContent || '';
-        
-        // 1. Update State
-        this.className = getStyleClass(markerText);
+        const m = marker.trim();
 
-        // 2. Pair Syncing
-        if (this.#endMarker) {
-            const expectedEnd = getPairingContent(markerText, true);
-            if (this.#endMarker.textContent !== expectedEnd) {
-                this.#isSyncing = true;
-                this.#endMarker.textContent = expectedEnd;
-                // Allow observer to catch its breath before accepting new mutations
-                queueMicrotask(() => { this.#isSyncing = false; });
+        if (isStart) {
+            let i = matchingStarts.indexOf(m);
+            if (i >= 0) return matchingEnds[i];
+
+            // for block code
+            if (m.startsWith("``")) {
+                return m.match(/^`+/)?.[0] || '';
+            }
+
+            // for html tags
+            if (m.startsWith('<')) {
+                const match = m.match(/<([a-z1-6]+)/i);
+                if (match) return `</${match[1]}>`;
+            }
+        } else {
+            let i = matchingEnds.indexOf(m);
+            if (i >= 0) return matchingStarts[i];
+
+            // for block code
+            if (m.startsWith("``")) {
+                const backticks = m.match(/^`+/)?.[0] || '';
+                if (currentOpposite) {
+                    const currentRest = currentOpposite.replace(/^`+/, '');
+                    return backticks + currentRest;
+                }
+                return backticks;
+            }
+
+            // for html tag
+            if (m.startsWith('</')) {
+                const match = m.match(/<\/([a-z1-6]+)/i);
+                if (match) return `<${match[1]}>`;
             }
         }
+
+        if (selfPairs.includes(m[0])) return m; // if any starts with a self mathcing char, return self
+
+        return '';
+    }
+};
+
+import { SemanticMarker } from './semantic-marker.ts';
+
+export class SemanticTag extends HTMLElement {
+    #startMarker: HTMLElement | null = null;
+    #endMarker: HTMLElement | null = null;
+
+    fill(marker: string = "", children: string | Node[] = "") {
+        if (typeof children == "string") {
+            children = [document.createTextNode(children)]
+        }
+
+        const end = SemanticRules.getPair(marker, true);
+        this.className = SemanticRules.markerToClass(marker);
+
+        const startMarker = new SemanticMarker(marker, true);
+        startMarker.className = 'marker start';
+
+        const endMarker = new SemanticMarker(end, false);
+        endMarker.className = 'marker end';
+
+
+        this.append(startMarker, ...children, endMarker);
+
+        return this;
+    }
+
+    connectedCallback() {
+        this.#startMarker = this.querySelector('semantic-marker.start');
+        this.#endMarker = this.querySelector('semantic-marker.end');
+    }
+
+    public onMarkerRemove() {
+        this.#endMarker?.remove();
+        this.#startMarker?.remove();
+        this.className = SemanticRules.markerToClass("", this.className);
+    }
+
+    public onMarkerChange(marker: string, isStart = true) {
+        const pair = SemanticRules.getPair(marker, isStart);
+
+        if (isStart && this.#endMarker!.textContent !== pair) {
+            this.#endMarker!.textContent = pair
+        }
+        if (!isStart && this.#startMarker!.textContent !== pair) {
+            this.#startMarker!.textContent = pair
+        }
+
+        this.className = SemanticRules.markerToClass(marker);
     }
 }
 

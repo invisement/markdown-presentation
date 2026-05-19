@@ -3,7 +3,6 @@
  * This file contains both the Face (Contract) and the Doer (Implementation).
  */
 
-import { SemanticTag } from './semantic-tag.ts';
 
 export type MdNodeTag = 'P' | 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6' | 'LI' | 'B' | 'I' | 'CODE' | 'PRE';
 
@@ -37,8 +36,8 @@ export class DomServicer implements DomServicerFace {
     createNode(tag: string, text?: string, className?: string): HTMLElement {
         const type = TAG_MAP[tag.toLowerCase()] || 'inline';
         const el = (type === 'semantic-tag')
-                ? document.createElement('semantic-tag')
-                : document.createElement(tag);
+            ? document.createElement('semantic-tag')
+            : document.createElement(tag);
 
         if (text) el.textContent = text;
         if (className) el.classList.add(className);
