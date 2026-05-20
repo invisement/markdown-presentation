@@ -147,6 +147,26 @@ export class SemanticTag extends HTMLElement {
 
         this.className = SemanticRules.markerToClass(marker);
     }
+
+    public grabLeft(isStart = true): string {
+        const node = isStart ? this.previousSibling! : this.#endMarker!.previousSibling!;
+        const leftString = node.textContent!.slice(-20);
+        
+        if (this.className === "li") {
+            return leftString.match(/.\s*$/)![0];
+        }
+        return leftString.at(-1)!;
+    }
+
+    public grabRight(isStart = true): string {
+        const isInline = ["b", "i", "code", "del"].includes(this.className);
+        if (isInline) return "";
+        
+        const node = isStart ? this.#startMarker!.nextSibling! : this.nextSibling!;
+        const rightString = node.textContent!.slice(0, 20);
+        
+        return rightString.at(0)!;
+    }
 }
 
 if (!customElements.get('semantic-tag')) {

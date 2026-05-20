@@ -1,0 +1,60 @@
+digraph logic {
+  graph [fontsize=24; rankdir="LR"; labelloc="b"; concentrate=true; overlap=false; splines=true; color=black; nodesep=0.5; ranksep=2;];
+  node [shape=box, fontsize=16, color=blue, fontname="Arial", style=filled, fillcolor="#f9f9ff"];
+  edge [fontsize=12, color=blue, arrowhead=vee];
+
+  subgraph "cluster_EditorOrchestrator" {
+    label = "EditorOrchestrator";
+    "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" [label="handleBlockInput", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator:loadSample" [label="loadSample", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
+  }
+  subgraph "cluster_MarkdownParser" {
+    label = "MarkdownParser";
+    "markdown-parser.ts:MarkdownParser:parseDocument" [label="parseDocument", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+    "markdown-parser.ts:MarkdownParser:parseBlock" [label="parseBlock", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+    "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+  }
+  subgraph "cluster_DomServicer" {
+    label = "DomServicer";
+    "dom-servicer.ts:DomServicer:replaceNode" [label="replaceNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:createNode" [label="createNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "dom-servicer.ts:DomServicer:swapNodes" [label="swapNodes", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+  }
+  subgraph "cluster_SemanticTag" {
+    label = "SemanticTag";
+    "semantic-tag.ts:SemanticTag:buildTemplate" [label="buildTemplate", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
+    "semantic-tag.ts:SemanticTag:connectedCallback" [label="connectedCallback", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
+    "semantic-tag.ts:SemanticTag:handleMutation" [label="handleMutation", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
+  }
+  subgraph "cluster_semantic_tag_ts_Module" {
+    label = "Module: semantic-tag.ts";
+    "semantic-tag.ts:Module:getPairingContent" [label="getPairingContent", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
+  }
+  subgraph cluster_browser {
+    label = "Browser APIs";
+    "Browser:fetch" [label="fetch"];
+    "Browser:document" [label="document"];
+    "Browser:window" [label="window"];
+    "Browser:MutationObserver" [label="MutationObserver"];
+    "Browser:customElements" [label="customElements"];
+  }
+  "dom-servicer.ts:DomServicer:createNode" -> "Browser:document";
+  "dom-servicer.ts:DomServicer:replaceNode" -> "Browser:window";
+  "dom-servicer.ts:DomServicer:swapNodes" -> "Browser:window";
+  "dom-servicer.ts:DomServicer:swapNodes" -> "dom-servicer.ts:DomServicer:createNode";
+  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "dom-servicer.ts:DomServicer:replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "markdown-parser.ts:MarkdownParser:parseBlock";
+  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "markdown-parser.ts:MarkdownParser:parseDocument";
+  "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "Browser:fetch";
+  "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "dom-servicer.ts:DomServicer:clearAndAppend";
+  "markdown-parser.ts:MarkdownParser:parseBlock" -> "markdown-parser.ts:MarkdownParser:parseInline";
+  "markdown-parser.ts:MarkdownParser:parseDocument" -> "Browser:document";
+  "markdown-parser.ts:MarkdownParser:parseDocument" -> "markdown-parser.ts:MarkdownParser:parseBlock";
+  "markdown-parser.ts:MarkdownParser:parseInline" -> "Browser:document";
+  "semantic-tag.ts:SemanticTag:buildTemplate" -> "semantic-tag.ts:Module:getPairingContent";
+  "semantic-tag.ts:SemanticTag:connectedCallback" -> "Browser:MutationObserver";
+  "semantic-tag.ts:SemanticTag:handleMutation" -> "Browser:customElements";
+  "semantic-tag.ts:SemanticTag:handleMutation" -> "semantic-tag.ts:Module:getPairingContent";
+}
+

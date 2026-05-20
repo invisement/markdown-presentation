@@ -63,6 +63,11 @@ These are non-negotiable design decisions that must be followed. Any deviation m
 - **Constraint**: No other class or service (e.g., `EditorOrchestrator`, `MarkdownParser`) may call native DOM methods that modify the structure (like `replaceWith`, `appendChild`, `remove`, `innerHTML`, etc.).
 - **Implementation**: All structural changes must go through the `DomServicerFace` contract (`swapNodes`, `replaceNode`, `removeNode`).
 
+### 4. Logging & Diagnostics (Dev Console Instrumentation)
+- **The Rule**: Always instrument key orchestrator flows and event handlers with explicit, readable `console.debug` statements.
+- **Why**: Allows both developers and AI agents to transparently trace exactly what triggers, what gets matched, and what is skipped during editing.
+- **Constraint**: All dev instrumentation logs should be removed or cleaned up in close-up routines before shipping to production.
+
 ## Naming and Implementation Philosophy (Go-Style)
 
 - **Interfaces are Agent Faces**: We use the `Face` suffix for interfaces to signify they are the contract/interface of an agent.
@@ -78,18 +83,30 @@ These are non-negotiable design decisions that must be followed. Any deviation m
 
 We use an explicit **PubSub** mechanism to manage event-driven reactivity, specifically for the lifecycle of Markdown markers (`md-ctrl`). This ensures that reactive changes are declarative and visible.
 
+### Child-Parent Communication Rule (No PubSub for Local Direct Bounds)
+* **Direct Function Calls Preferment**: For communication between an immediate child and parent component (e.g., `<semantic-marker>` and `<semantic-tag>`), **always use direct function calls on each other** instead of subscribing to a PubSub topic or dispatching DOM events. This ensures 100% type safety, maximum performance, instant synchronous updates, and completely eliminates any memory leak risks or closure leaks!
+
 ### Event-Driven Logic
 While much of the system's structure is governed by direct service orchestration, PubSub handles the "active" part of the editor:
 - **Marker Mutations**: When an `md-ctrl` element is modified, it publishes to the `markerChanged` topic.
 - **Reactive Actions**: The `EditorOrchestrator` subscribes to these topics to perform surgical updates, such as syncing paired markers or swapping block tags.
+
+### Memory Leaks & "Silent Zombies"
+Using a global Topic (like `husk/ui/pubsub.ts`) comes with a strict memory management responsibility. When a dynamic component (like a DOM node) passes an arrow function to a Topic's subscriber list, it creates a **closure**. This closure holds a strong reference to the component instance.
+
+**The Danger:** If the component is deleted from the DOM, the Garbage Collector **cannot** delete it from memory because the global Topic still holds a reference to the subscriber function. The dead component becomes a "Silent Zombie", executing its subscriber function off-screen every time the Topic publishes, creating severe memory leaks.
+
+**The Solutions:**
+1. **Manual Cleanup:** Store the `keys` returned by `Topic.bus()` or `Topic.sub()`, and explicitly call `Topic.unsub(key)` when the component is destroyed (e.g., inside `disconnectedCallback`).
+2. **Automatic Crash (Preferred for UI):** Ensure the subscriber function intentionally throws an error if it detects it is disconnected: `if (!this.isConnected) throw new Error("Zombie");`. The `try/catch` block in `husk/ui/pubsub.ts` will catch this crash and cleanly delete the subscriber from the Map, freeing the Garbage Collector.
 
 ### Behavioral Traceability
 Structural graphs (imports) only tell half the story. To maintain architectural integrity, we use the **Husk Logic-Graph** utility to visualize real-time behavior.
 
 - **Logical Flow**: We prioritize the `Publisher -> Topic -> Subscriber` flow over internal wiring.
 - **Interactive Truth**: The generated `reports/logic-graph.dot` includes interactive `URL` and `tooltip` attributes, allowing developers to jump directly from a node in the graph to the corresponding source file.
-- **Noise Suppression**: Orchestration logic (like `setupFlow` or `main`) is suppressed to keep the graph focused on pure business logic interactions between services and Browser APIs.
-- **Invariant Enforcement**: Any direct cross-service coupling that appears in the graph without an event-driven justification is a candidate for refactoring in Iteration 5.
+- **Noise Suppression**: Orchestration logic (like `pubsub-flow.ts` or `main`) is suppressed to keep the graph focused on pure business logic interactions between services and Browser APIs.
+- **Invariant Enforcement**: Any direct cross-service coupling that appears in the graph without an event-driven justification is a candidate for refactoring in Iteration 6.
 
 This graph serves as our **Architectural Truth**, allowing us to verify that logic flows correctly and that invariants (such as direct DOM manipulation outside of `DomServicer`) are strictly avoided.
 
@@ -103,7 +120,14 @@ We trust the happy path and allow the application to throw a loud exception (e.g
 ### 2. On-Demand Building
 Not every small code change requires a full end-to-end test or build. Do not run the global build command (`deno task dev:build`) reflexively after minor updates. Trust the code changes, and only run full builds when a significant milestone is reached or when explicitly requested.
 
-### 3. Strict Refactoring Definition
+### 3. Interactive Review vs. Session Close-Up (CRITICAL PROCESS RULE)
+* **The Rule**: Do NOT run builds, git commands, or edit documentation/task-trackers after every single minor iteration or code change.
+* **Why**: It typically takes up to 25 cycles of "review and redo" to refine a feature to perfection. Doing build/doc chores 24 times prematurely is highly inefficient.
+* **Protocol**: 
+  1. During active review, just edit the source files and let the developer do the direct checking.
+  2. Perform **ONLY ONE "close-up" phase** (build, git check, documentation/task-tracker updates) at the very end of the session, once both the AI and the developer explicitly agree the work is fully complete.
+
+### 4. Strict Refactoring Definition
 When we say "Refactor", it has a very specific meaning: **No logic or major code changes.** Refactoring means strictly reorganizing existing logic—moving files, splitting classes, stitching components together, renaming, or restructuring. If business logic *must* be changed, we do it *after* the initial refactor is complete, and only with careful deliberation. We do not mix logic changes with structural refactoring.
 
 ## Web Components Guidelines
@@ -122,6 +146,11 @@ Do not use `document.createElement` when injecting structural spans inside a com
 ### 3. Element Caching
 Never use `querySelector` inside high-frequency lifecycle methods like `MutationObserver` callbacks. Always query and cache your internal DOM nodes (e.g., `this.#startMarker`) during `buildTemplate` or `connectedCallback`, and use the cached private properties everywhere else.
 
+### 4. Dual-Mode Initialization Pattern (Lit-like Attribute/Constructor Synergy)
+For consistency, all Web Components must support both JavaScript instantiation (`new Component(args)`) and HTML parsing (`<my-component attr="val">`) flawlessly:
+- **Constructor Defaults**: Always define the constructor with "zero value" defaults (e.g., `constructor(marker: string = "", isStart = true)`) that assign parameters to internal variables. This ensures the browser's native DOM parser can instantiate the element with zero arguments without throwing parameter errors.
+- **`connectedCallback` Attribute Fallback**: In `connectedCallback()`, check if the instance variables are zero/empty. If they are, retrieve their values directly from the element's HTML attributes (e.g., `this.getAttribute('marker')`). This guarantees seamless setup whether the element is created programmatically or parsed directly from markup.
+
 ## Code Freeze & SOLID Modification Protocols
 
 This section lists the top-level objects in our architecture, their responsibilities, and their current modification status. 
@@ -130,17 +159,34 @@ This section lists the top-level objects in our architecture, their responsibili
 
 If a class is marked as **FROZEN**, no code changes may be made to it without explicit consultation and confirmation from the project lead.
 
+### 0. `husk/` (Infrastructure & Utilities)
+- **Status:** 🔴 **FROZEN**
+- **Responsibility:** The core infrastructure, UI components, PubSub system, and logic-graph generator that powers the entire workspace.
+- **Why it exists:** Provides robust, generic foundational tools and architectural visualization (e.g., `logic-graph.ts` and `pubsub.ts`) to support all sub-projects.
+- **Modification Rule:** The entire directory is strictly frozen. No modifications are allowed to any file within `husk/` without explicit approval.
+
 ### 1. `SemanticTag` (`src/semantic-tag.ts`)
 - **Status:** 🔴 **FROZEN**
-- **Responsibility:** The autonomous Web Component that builds its own Light DOM (`.marker`, `.content`), manages its state via CSS classes, and handles its own `MutationObserver` for pair-syncing.
-- **Why it exists:** To decouple syntax reactivity from the global DOM, providing a rock-solid, zero-tag-swap editing experience.
-- **Modification Rule:** Do not touch the observer or rendering logic. If you need a new markdown style, you add a single line to the `getStyleClass` mapping function. The core class is sealed.
+- **Responsibility:** The autonomous Web Component that serves as a passive container, manages internal start/end markers via value-differ sync logic, and hosts the visual styling className.
+- **Why it exists:** Provides a zero-overhead, highly encapsulated container for Markdown markup without any external event buses or state orchestrators.
+- **Modification Rule:** Strictly frozen. Never modify this component without explicit consultation and confirmation from the project lead.
+
+### 1b. `SemanticMarker` (`src/semantic-marker.ts`)
+- **Status:** 🔴 **FROZEN**
+- **Responsibility:** The generic, light element representing the visual Markdown marker syntax characters (e.g. `**`, `# `). It manages its own direct `MutationObserver` and notifies the parent container natively during typing and removal lifecycles.
+- **Why it exists:** Isolates the active character editing of Markdown syntax, providing robust local reactivity that keeps the parent `<semantic-tag>` 100% clean and free of polling loops.
+- **Modification Rule:** Strictly frozen. Never modify this component without explicit consultation and confirmation from the project lead.
 
 ### 2. `MarkdownParser` (`src/markdown-parser.ts`)
-- **Status:** 🟡 **ACTIVE** (Nearing Freeze)
-- **Responsibility:** Translates raw Markdown AST into `SemanticTag` instantiations.
+- **Status:** 🟡 **ACTIVE** (Refactoring for Iteration 7)
+- **Responsibility:** Translates raw Markdown into `SemanticTag` instantiations.
 - **Why it exists:** The editor needs a reliable, one-way translator to convert flat strings into our surgical, nested component tree.
-- **Modification Rule:** Can be modified to support new Markdown grammar or fix parsing bugs, but its output signature (returning `SemanticTag` nodes) must not change.
+- **Parser Library Decision:** We utilize **Marked** (`marked.lexer`) to generate a lightweight Abstract Syntax Tree (AST) from raw markdown. We evaluated several alternatives:
+    - **Remark**: Too heavy. We don't need its exact character offset tracking anymore since we don't do complex cursor manipulation across node swaps.
+    - **Lezer**: Too generic and steep learning curve for simple DOM mapping.
+    - **Markdown-it**: Produces a flat array of tokens. Since we construct our DOM bottom-up, its requirement to use a state machine (stack) was less idiomatic than a nested tree.
+    - **Marked**: Perfect fit. Provides a simple, nested AST via `.lexer()` that maps flawlessly to a bottom-up, recursive `SemanticTag` instantiation logic.
+- **Modification Rule:** Output signature must return a DOM fragment/element containing `SemanticTag` nodes. The internal parsing uses Marked instead of custom Regex.
 
 ### 3. `EditorOrchestrator` (`src/editor-orchestrator.ts`)
 - **Status:** 🟡 **ACTIVE** (Pending Refactor)
@@ -153,5 +199,24 @@ If a class is marked as **FROZEN**, no code changes may be made to it without ex
 - **Responsibility:** Originally managed all tag swapping and centralized DOM logic.
 - **Why it exists:** To act as the exclusive agent for DOM manipulation (preventing cursor jumps).
 - **Modification Rule:** Open for modification/deletion. Since `SemanticTag` now handles its own state without swapping tags, `DomServicer`'s role is severely reduced and may be phased out entirely soon.
+
+## AI Development & Communication Invariants
+
+- **The Rule**: Antigravity/AI developers MUST skip compliments, praise, or introductory flattery in conversation. Interactions must remain strictly direct, technical, and objective.
+- **Pair Programming & Algorithms**: We care deeply about algorithms (how things are done under the hood). We discuss approaches thoroughly (using chat, diagrams, or iterative edits to the implementation plan) *before* writing code.
+- **Pair Programming & Focus Protocol**: When in active pair programming mode, both participants must proceed with extreme focus and deliberate pacing. We limit edits to a tiny scope (often 1 or 2 files, and only a few targeted lines of code change at a time). We strictly address only the specific task at hand. There must be NO unsolicited refactoring, code formatting, style restructuring, or removal/alteration of existing code comments or documentation. We focus entirely on developing the barebones, happy-path algorithm, postponing all secondary polishing and refactoring until explicitly agreed upon.
+
+## Development Philosophy: Always Happy Path
+
+- **The Principle**: We code assuming the **Happy Path** by default. We do NOT add defensive checks or anticipate theoretical edge cases until we have a concrete runtime error in front of us.
+- **No Verbose Skipped Logs**: Do not pollute the logging flow with "skipping", "null", "not in trigger", or "not found" messages. Logging (`console.debug`) should ONLY trace successful matches or positive actions. Keep the code clean, concise, and focused.
+
+## Caret & Marker Lifecycle Invariant
+
+- **The Rule**: In the editor, a user **never** types or manually inserts a closing marker. The only way closing markers exist in the DOM is via file loading/parsing.
+- **Marker Instantiation**: When a user types an opening trigger character (e.g. `` ` ``), it immediately triggers the creation of a `<semantic-tag>`.
+- **Self-Generating Markers**: The `<semantic-tag>`'s shadow/light DOM itself natively generates and manages both the start and end markers (e.g. using `tag.fill()`).
+- **No Symmetrical Closing Match**: Consequently, the editor's runtime input orchestration logic only needs to look *forward* from the cursor (into `rightText`) to grab the targeted phrase and wrap it; the user never inputs a matching closing marker character.
+
 
 

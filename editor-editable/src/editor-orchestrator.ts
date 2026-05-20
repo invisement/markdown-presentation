@@ -36,7 +36,7 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
 
     public handleInput(e: InputEvent) {
         console.debug('[Orchestrator] handleInput e.data =', JSON.stringify(e.data));
-        const triggers = ['*', '`', '~', '_', ' ', '#', '-'];
+        const triggers = ['*', '`', '~', '_', '#', '-'];
         if (!e.data || !triggers.includes(e.data)) {
             console.debug('[Orchestrator] Not in trigger keys, skipping');
             return;
@@ -76,7 +76,7 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
             const lines = right.split("\n")
             const firstLine = lines.at(0) || ""
             const semanticTag = new SemanticTag().fill(startingMarkers, firstLine)
-            
+
             // find the block container under editorEl
             let block = sel.anchorNode as HTMLElement;
             if (sel.anchorNode!.nodeType === Node.TEXT_NODE) {
@@ -87,7 +87,7 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
             }
             if (block) {
                 block.replaceWith(semanticTag);
-                
+
                 // place caret inside the semanticTag's content span
                 sel.removeAllRanges();
                 const newRange = document.createRange();

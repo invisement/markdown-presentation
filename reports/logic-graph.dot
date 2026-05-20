@@ -1,68 +1,58 @@
 digraph logic {
-  graph [fontsize=24; rankdir="LR"; labelloc="b"; concentrate=true; overlap=false; splines=true; color=black; nodesep=0.5; ranksep=2;];
-  node [shape=box, fontsize=16, color=blue, fontname="Arial", style=filled, fillcolor="#f9f9ff"];
+  graph [fontname="system-ui"; fontcolor=darkblue; fontsize=14; style="dashed" rankdir="LR"; concentrate=true; overlap=false; splines=true; color=darkblue; ranksep=1.5;];
+  node [fontname="sans-serif"; shape=Mrecord, fontsize=12, color=blue, style=filled, fillcolor="#f9f9ff"];
   edge [fontsize=12, color=blue, arrowhead=vee];
 
+  subgraph "cluster_SemanticMarker" {
+    label = "SemanticMarker";
+    "semantic-marker.ts:SemanticMarker" [label="<disconnectedCallback> disconnectedCallback", URL="semantic-marker.ts", tooltip="semantic-marker.ts"];
+  }
+  subgraph "cluster_SemanticTag" {
+    label = "SemanticTag";
+    "semantic-tag.ts:SemanticTag" [label="<onMarkerRemove> onMarkerRemove | <fill> fill | <onMarkerChange> onMarkerChange", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
+  }
   subgraph "cluster_EditorOrchestrator" {
     label = "EditorOrchestrator";
-    "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" [label="syncPairedMarkers", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
-    "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" [label="transformBlockStructure", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
-    "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" [label="reparseCollapsedBlock", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
-    "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" [label="unwrapInlineStyle", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
-    "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" [label="handleBlockInput", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
-    "editor-orchestrator.ts:EditorOrchestrator:loadSample" [label="loadSample", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
-  }
-  subgraph "cluster_MdCtrl" {
-    label = "MdCtrl";
-    "dom-servicer.ts:MdCtrl:syncContent" [label="syncContent", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-  }
-  subgraph "cluster_DomServicer" {
-    label = "DomServicer";
-    "dom-servicer.ts:DomServicer:replaceNode" [label="replaceNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:swapNodes" [label="swapNodes", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:removeNode" [label="removeNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:unwrapNode" [label="unwrapNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:clearAndAppend" [label="clearAndAppend", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:createNode" [label="createNode", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
-    "dom-servicer.ts:DomServicer:attachObserver" [label="attachObserver", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+    "editor-orchestrator.ts:EditorOrchestrator" [label="<handleBlockInput> handleBlockInput | <loadSample> loadSample", URL="editor-orchestrator.ts", tooltip="editor-orchestrator.ts"];
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
-    "markdown-parser.ts:MarkdownParser:parseDocument" [label="parseDocument", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
-    "markdown-parser.ts:MarkdownParser:parseBlock" [label="parseBlock", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
-    "markdown-parser.ts:MarkdownParser:parseInline" [label="parseInline", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+    "markdown-parser.ts:MarkdownParser" [label="<parse> parse | <buildNodeBottomUp> buildNodeBottomUp", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+  }
+  subgraph "cluster_DomServicer" {
+    label = "DomServicer";
+    "dom-servicer.ts:DomServicer" [label="<replaceNode> replaceNode | <clearAndAppend> clearAndAppend | <createNode> createNode | <swapNodes> swapNodes", URL="dom-servicer.ts", tooltip="dom-servicer.ts"];
+  }
+  subgraph "cluster_semantic_tag_ts_Module" {
+    label = "Module: semantic-tag.ts";
+    "semantic-tag.ts:semantic-tag.ts:Module" [label="<getPair> getPair | <markerToClass> markerToClass | <astToMarker> astToMarker", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
+  }
+  subgraph "cluster_markdown_parser_ts_Module" {
+    label = "Module: markdown-parser.ts";
+    "markdown-parser.ts:markdown-parser.ts:Module" [label="<getMarkerForToken> getMarkerForToken", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
   }
   subgraph cluster_browser {
     label = "Browser APIs";
-    "Browser:fetch" [label="fetch"];
-    "Browser:customElements" [label="customElements"];
-    "Browser:document" [label="document"];
-    "Browser:MutationObserver" [label="MutationObserver"];
-    "Browser:window" [label="window"];
+    "Browser" [label="<customElements> customElements | <fetch> fetch | <document> document | <window> window"];
   }
-  "dom-servicer.ts:DomServicer:attachObserver" -> "Browser:MutationObserver";
-  "dom-servicer.ts:DomServicer:createNode" -> "Browser:document";
-  "dom-servicer.ts:DomServicer:createNode" -> "dom-servicer.ts:DomServicer:attachObserver";
-  "dom-servicer.ts:DomServicer:replaceNode" -> "Browser:window";
-  "dom-servicer.ts:DomServicer:swapNodes" -> "Browser:window";
-  "dom-servicer.ts:DomServicer:swapNodes" -> "dom-servicer.ts:DomServicer:createNode";
-  "dom-servicer.ts:MdCtrl:syncContent" -> "Browser:customElements";
-  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "dom-servicer.ts:DomServicer:replaceNode";
-  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "markdown-parser.ts:MarkdownParser:parseBlock";
-  "editor-orchestrator.ts:EditorOrchestrator:handleBlockInput" -> "markdown-parser.ts:MarkdownParser:parseDocument";
-  "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "Browser:fetch";
-  "editor-orchestrator.ts:EditorOrchestrator:loadSample" -> "dom-servicer.ts:DomServicer:clearAndAppend";
-  "editor-orchestrator.ts:EditorOrchestrator:reparseCollapsedBlock" -> "dom-servicer.ts:DomServicer:replaceNode";
-  "editor-orchestrator.ts:EditorOrchestrator:syncPairedMarkers" -> "dom-servicer.ts:MdCtrl:syncContent";
-  "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" -> "dom-servicer.ts:DomServicer:replaceNode";
-  "editor-orchestrator.ts:EditorOrchestrator:transformBlockStructure" -> "dom-servicer.ts:DomServicer:swapNodes";
-  "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:removeNode";
-  "editor-orchestrator.ts:EditorOrchestrator:unwrapInlineStyle" -> "dom-servicer.ts:DomServicer:unwrapNode";
-  "markdown-parser.ts:MarkdownParser:parseBlock" -> "dom-servicer.ts:DomServicer:createNode";
-  "markdown-parser.ts:MarkdownParser:parseBlock" -> "markdown-parser.ts:MarkdownParser:parseInline";
-  "markdown-parser.ts:MarkdownParser:parseDocument" -> "Browser:document";
-  "markdown-parser.ts:MarkdownParser:parseDocument" -> "dom-servicer.ts:DomServicer:createNode";
-  "markdown-parser.ts:MarkdownParser:parseDocument" -> "markdown-parser.ts:MarkdownParser:parseBlock";
-  "markdown-parser.ts:MarkdownParser:parseInline" -> "Browser:document";
-  "markdown-parser.ts:MarkdownParser:parseInline" -> "dom-servicer.ts:DomServicer:createNode";
+  "dom-servicer.ts:DomServicer":"createNode" -> "Browser":"document";
+  "dom-servicer.ts:DomServicer":"replaceNode" -> "Browser":"window";
+  "dom-servicer.ts:DomServicer":"swapNodes" -> "Browser":"window";
+  "editor-orchestrator.ts:EditorOrchestrator":"handleBlockInput" -> "dom-servicer.ts:DomServicer":"replaceNode";
+  "editor-orchestrator.ts:EditorOrchestrator":"handleBlockInput" -> "markdown-parser.ts:MarkdownParser":"parse";
+  "editor-orchestrator.ts:EditorOrchestrator":"loadSample" -> "Browser":"fetch";
+  "editor-orchestrator.ts:EditorOrchestrator":"loadSample" -> "dom-servicer.ts:DomServicer":"clearAndAppend";
+  "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "Browser":"document";
+  "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "markdown-parser.ts:markdown-parser.ts:Module":"getMarkerForToken";
+  "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "semantic-tag.ts:SemanticTag":"fill";
+  "markdown-parser.ts:MarkdownParser":"parse" -> "Browser":"document";
+  "markdown-parser.ts:markdown-parser.ts:Module":"getMarkerForToken" -> "semantic-tag.ts:semantic-tag.ts:Module":"astToMarker";
+  "semantic-marker.ts:SemanticMarker":"disconnectedCallback" -> "Browser":"customElements";
+  "semantic-marker.ts:SemanticMarker":"disconnectedCallback" -> "semantic-tag.ts:SemanticTag":"onMarkerRemove";
+  "semantic-tag.ts:SemanticTag":"fill" -> "semantic-tag.ts:semantic-tag.ts:Module":"getPair";
+  "semantic-tag.ts:SemanticTag":"fill" -> "semantic-tag.ts:semantic-tag.ts:Module":"markerToClass";
+  "semantic-tag.ts:SemanticTag":"onMarkerChange" -> "Browser":"customElements";
+  "semantic-tag.ts:SemanticTag":"onMarkerChange" -> "semantic-tag.ts:semantic-tag.ts:Module":"getPair";
+  "semantic-tag.ts:SemanticTag":"onMarkerChange" -> "semantic-tag.ts:semantic-tag.ts:Module":"markerToClass";
+  "semantic-tag.ts:SemanticTag":"onMarkerRemove" -> "semantic-tag.ts:semantic-tag.ts:Module":"markerToClass";
 }

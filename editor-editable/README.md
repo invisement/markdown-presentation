@@ -40,11 +40,39 @@ We have successfully implemented the core architecture using a **Type-Driven Ser
 - [x] **Code Freeze Registry**: Established strict SOLID modification protocols in `design/design.md` for freezing core structural files.
 
 
-### [ ] Iteration 6. Logical Decoupling & SOLID Refactoring
-we are going to focus on pubsub, events
+### 6. [x] Iteration 6. PubSub & Event Decoupling
+- [x] **Event Audit**: Evaluated the necessity of global PubSub flow in the new architecture.
+- [x] **Zero-Coupling**: Confirmed that the autonomous `SemanticTag` completely eliminates the need for cross-component tag-swapping events.
+- [x] **Cleanup**: Emptied `pubsub-flow.ts` and removed all premature `addEventListener` and `bus` bindings, ensuring the editor remains entirely decoupled from global event loops for now.
+
+### [X] Iteration 7. parser
+- [X] decide on a markdown engine: Marked is our choice for its simple nested AST.
+    - Market-it: no because it was flat, was the second option. Remared was too detailed and too much info we do not need (like cursor management), codeMirror engine: too generic.
+- [X] rewrite parser to use it
+- [X] simpler logic for semantic-tag web component
+
+### [X] Iteration 8. make marker into web component
+- [X] Created `<semantic-marker>` custom element in Light DOM to cleanly capture native lifecycle events like `disconnectedCallback` on deletion.
+- [X] Replaced the local `MutationObserver` inside `<semantic-tag>` with local child TextNode observation inside the marker.
+- [X] Wired global PubSub orchestration inside `pubsub-flow.ts` to coordinate sibling sync and class updates on marker changes and deletions.
+
+### [ ] Iteration 9: when adding marker chars, style them
+I think the best thing is to listen to key down and have a list of marker starters to trigger <semantic-marker> and maybe other <pairing-marker> such as brackets.
+- does semantic marker include space/blank?
 
 
+### [ ] Iteration 10: ideas to reduce key listening (and taking actions)
+We like to discuss in depth about the algo and solutions to let semnatic-tag itself detect more and not rely on editor input event. 
+- extend: make that tags with its defining boundried like "\n### " or "\b~" or "\n\s+[- ]"  
+    - in delation of boundries we check to see if the neighbor char is a boundry, take it as new boundry.
+- experimental: we can add <marker-alert> to where an invalid marker is (and will be valid by single char change like inserting space after or before the marker). this has no style (vanilla span) but puts marker a char before and a char after in a web component tag to observe input especially space (if not space just change the boundry char)
 
+The first one takes care of backspace and delete
+the second one takes care of space and enter
+which are the most used keys.
+then the only remains is listen to markers to start a semnatic-tag or (if failed the test, a <marker-alert>).
+
+I want the code to change, every time in a very small scope and lines. like 20 lines for how and where to capture boundries in semantic-tag (step 1 of first), then we go to the next step.
 
 ## Architecture
 
