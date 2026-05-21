@@ -27,13 +27,23 @@ body {
 	caret-color: #e94560;
 }
 
+#editor>semantic-tag {
+	white-space: break-spaces;
+}
+
 /* Custom Elements Display */
-semantic-tag { display: inline; }
-semantic-tag.p, 
-semantic-tag.h1, semantic-tag.h2, semantic-tag.h3, 
-semantic-tag.li, semantic-tag.pre { 
-    display: block; 
-    margin: 0.3em 0; 
+semantic-tag {
+	display: inline;
+}
+
+semantic-tag.p,
+semantic-tag.h1,
+semantic-tag.h2,
+semantic-tag.h3,
+semantic-tag.li,
+semantic-tag.pre {
+	display: block;
+	margin: 0.3em 0;
 }
 
 /* Block elements (Classes) */
@@ -69,7 +79,8 @@ semantic-tag.li, semantic-tag.pre {
 }
 
 #editor .li::before {
-	content: ''; /* We keep the .marker as the marker */
+	content: '';
+	/* We keep the .marker as the marker */
 }
 
 /* Inline formatting (Classes) */

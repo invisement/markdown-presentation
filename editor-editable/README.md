@@ -56,23 +56,21 @@ We have successfully implemented the core architecture using a **Type-Driven Ser
 - [X] Replaced the local `MutationObserver` inside `<semantic-tag>` with local child TextNode observation inside the marker.
 - [X] Wired global PubSub orchestration inside `pubsub-flow.ts` to coordinate sibling sync and class updates on marker changes and deletions.
 
-### [ ] Iteration 9: when adding marker chars, style them
-I think the best thing is to listen to key down and have a list of marker starters to trigger <semantic-marker> and maybe other <pairing-marker> such as brackets.
-- does semantic marker include space/blank?
+### [ ] Iteration 9: Zero-Width Space (ZWS) and Immutable Intervals
+- **ZWS in Opening Markers:** Explore placing a Zero-Width Space (`\u200B`) at the start of opening markers. This creates an incredibly tactile editor feeling:
+  - First backspace empties the visible marker characters.
+  - Second backspace deletes the ZWS and tears down the component.
+- **Interval Concept:** When the user starts a tag/marker, they open an interval with active bounds (start and end markers). They can empty the start marker and type anything else, seamlessly shifting styles on the fly.
 
+### [ ] Iteration 10: Block Splitting on Enter (The 3 Options Debate)
+We are currently evaluating three design paths for block creation on Enter:
+1. **Keep Styles (Current):** Clones the active block style (e.g., `- ` for list item) and nested inline styles to the new line.
+2. **Plain Paragraph Shift:** Always start the new line as a completely plain paragraph (`class="p"`) with no inline formatting.
+   - *Why:* It's far simpler, cleaner, and matches native markdown behaviors where starting a new style is as easy as typing a single marker or indent.
 
-### [ ] Iteration 10: ideas to reduce key listening (and taking actions)
-We like to discuss in depth about the algo and solutions to let semnatic-tag itself detect more and not rely on editor input event. 
-- extend: make that tags with its defining boundried like "\n### " or "\b~" or "\n\s+[- ]"  
-    - in delation of boundries we check to see if the neighbor char is a boundry, take it as new boundry.
-- experimental: we can add <marker-alert> to where an invalid marker is (and will be valid by single char change like inserting space after or before the marker). this has no style (vanilla span) but puts marker a char before and a char after in a web component tag to observe input especially space (if not space just change the boundry char)
-
-The first one takes care of backspace and delete
-the second one takes care of space and enter
-which are the most used keys.
-then the only remains is listen to markers to start a semnatic-tag or (if failed the test, a <marker-alert>).
-
-I want the code to change, every time in a very small scope and lines. like 20 lines for how and where to capture boundries in semantic-tag (step 1 of first), then we go to the next step.
+### [ ] Iteration 11: Dynamic Boundary & Neighborhood Tracking
+- Implement neighborhood boundary scanning to dynamically check surrounding characters (`markersWithBorders`) for instant activation.
+- Ensure that if an opening marker becomes invalid, it keeps its DOM structure but removes visual styling and sets the closing marker to `display: none`.
 
 ## Architecture
 

@@ -17,10 +17,15 @@ export class SemanticMarker extends HTMLElement {
         if (!this.textContent) { // means it is initiated by html tag, no args, now properties avaiulable and we can use them
             this.textContent = this.getAttribute('marker');
             this.#isStart = !this.hasAttribute('is-end'); // if is-end is missing, go default is-start
+
+            console.debug(this, "is created with hatml tag or natively by browser", this.textContent, this.#isStart)
+
         }
 
         this.#parent = this.parentElement as SemanticTag
         this.#observer.observe(this, { characterData: true, subtree: true });
+
+        if (this.textContent === "") return;
 
         this.compareAndSync(this.textContent!);
     }
@@ -106,19 +111,20 @@ function getPatternForClass(cssClass: string): RegExp {
     if (cssClass === "pre") return /^([^`]*)(`[\s\S]*`|`)([^`]*)$/;
     if (cssClass === "code") return /^([^`]*)(\`[\s\S]*\`|\`)([^`]*)$/;
     if (cssClass === "html-tag") return /^([^<]*)(<[\s\S]*>)([^>]*)$/;
-    return /$.^/;
+    return /^()(.*)()$/
 }
 
 export function split(markersWithBorders: string, cssClass: string): MarkerParts {
     const pattern = getPatternForClass(cssClass);
-    const match = markersWithBorders.match(pattern)!;
-    if (!match)
+    const match = markersWithBorders.match(pattern)! || ["", "", "", ""];
+    if (!match) { // null means empty initiation,
+    }
 
-        return {
-            leftChar: match[1],
-            middleChar: match[2],
-            rightChar: match[3]
-        };
+    return {
+        leftChar: match[1],
+        middleChar: match[2],
+        rightChar: match[3]
+    };
 }
 
 if (!customElements.get('semantic-marker')) {

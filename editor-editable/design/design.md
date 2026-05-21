@@ -219,4 +219,16 @@ If a class is marked as **FROZEN**, no code changes may be made to it without ex
 - **No Symmetrical Closing Match**: Consequently, the editor's runtime input orchestration logic only needs to look *forward* from the cursor (into `rightText`) to grab the targeted phrase and wrap it; the user never inputs a matching closing marker character.
 
 
+## Next-Gen Marker & Block Splitting Guidelines
+
+1. **Closing Marker Immutability:**
+   Closing markers are strictly immutable. They are automatically created, synced, and updated by the parent tag structure, never directly modified or typed by the user.
+
+2. **Boundary Neighbor Tracking (markersWithBorders):**
+   Semantic markers will dynamically inspect and track their neighboring boundary characters to ensure clean transition states and prevent accidental syntax leakage.
+
+3. **Fallback Structuring on Invalid Markers:**
+   If an opening marker becomes invalid (e.g. missing its space rule or syntax character), the element retains its exact structural DOM container but removes all visual CSS styling. Under these conditions, the partner closing marker should be set to hidden (`display: none`) to keep the editor clean and clear.
+
+
 
