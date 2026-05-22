@@ -182,6 +182,10 @@ semantic-tag.pre {
 	font-size: 0.8em;
 	font-weight: normal;
 	font-style: normal;
+	background-color: rgba(255, 255, 255, 0.05);
+	padding: 1px 4px;
+	border-radius: 3px;
+	margin: 0 1px;
 }
 
 /* HTML tags shown as text */

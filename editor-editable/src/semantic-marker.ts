@@ -30,55 +30,14 @@ export class SemanticMarker extends HTMLElement {
         this.compareAndSync(this.textContent!);
     }
 
-    #leftChar = "";
-    #middleChar = "";
-    #rightChar = "";
-
     private compareAndSync(newText: string) {
         const cssClass = this.#parent.className;
-        const next = this.nextSibling!;
-        const prev = this.#parent.previousSibling!;
-
-        const { leftChar: newLeft, middleChar: newMiddle, rightChar: newRight } = split(newText, cssClass);
-
-        if (newRight !== this.#rightChar) {
-            if (newRight.length > this.#rightChar.length) {
-                const extra = newRight.slice(this.#rightChar.length);
-                next.textContent = extra + next.textContent;
-                this.textContent = newLeft + newMiddle + this.#rightChar;
-            } else {
-                const rightText = next.textContent!;
-                if (rightText.startsWith(" ") || rightText.startsWith("\u00a0")) {
-                    next.textContent = rightText.slice(1);
-                    this.textContent = newLeft + newMiddle + " ";
-                }
-            }
-        }
-
-        if (newLeft !== this.#leftChar && this.#isStart) {
-            if (newLeft.length > this.#leftChar.length) {
-                const extra = newLeft.slice(this.#leftChar.length);
-                prev.textContent = prev.textContent + extra;
-                this.textContent = this.#leftChar + newMiddle + newRight;
-            } else {
-                const leftText = prev.textContent!;
-                if (leftText.endsWith(" ") || leftText.endsWith("\u00a0")) {
-                    prev.textContent = leftText.slice(0, -1);
-                    this.textContent = " " + newMiddle + newRight;
-                }
-            }
-        }
-
-        const finalParts = split(this.textContent!, cssClass);
-        this.#leftChar = finalParts.leftChar;
-        this.#middleChar = finalParts.middleChar;
-        this.#rightChar = finalParts.rightChar;
 
         const isValid = this.validateParts(cssClass);
         if (isValid) {
             this.classList.remove('semantic-alarm');
             this.classList.add('valid');
-            this.#parent.onMarkerChange(this.#middleChar + this.#rightChar, this.#isStart);
+            this.#parent.onMarkerChange(newText, this.#isStart);
         } else {
             this.classList.remove('valid');
             this.classList.add('semantic-alarm');
