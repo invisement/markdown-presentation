@@ -1,7 +1,7 @@
 import type { SemanticTag } from "./semantic-tag.ts";
 
 export class SemanticMarker extends HTMLElement {
-    #isStart = true;
+    public isStart = true;
     #parent!: SemanticTag;
     #observer = new MutationObserver(() => {
         this.compareAndSync(this.textContent!);
@@ -10,16 +10,20 @@ export class SemanticMarker extends HTMLElement {
     constructor(marker: string = "", isStart = true) {
         super();
         this.textContent = marker;
-        this.#isStart = isStart;
+        this.isStart = isStart;
+        if (!isStart) {
+            this.setAttribute('contenteditable', 'false');
+        }
     }
 
     connectedCallback() {
         if (!this.textContent) { // means it is initiated by html tag, no args, now properties avaiulable and we can use them
             this.textContent = this.getAttribute('marker');
-            this.#isStart = !this.hasAttribute('is-end'); // if is-end is missing, go default is-start
+            this.isStart = !this.hasAttribute('is-end'); // if is-end is missing, go default is-start
+        }
 
-            console.debug(this, "is created with hatml tag or natively by browser", this.textContent, this.#isStart)
-
+        if (!this.isStart) {
+            this.setAttribute('contenteditable', 'false');
         }
 
         this.#parent = this.parentElement as SemanticTag
@@ -31,17 +35,20 @@ export class SemanticMarker extends HTMLElement {
     }
 
     private compareAndSync(newText: string) {
+        if (newText === "" && this.isStart) {
+            this.remove();
+            return;
+        }
+
         const cssClass = this.#parent.className;
 
         const isValid = this.validateParts(cssClass);
         if (isValid) {
             this.classList.remove('semantic-alarm');
             this.classList.add('valid');
-            this.#parent.onMarkerChange(newText, this.#isStart);
         } else {
             this.classList.remove('valid');
             this.classList.add('semantic-alarm');
-            this.#parent.onMarkerChange("", this.#isStart);
         }
     }
 

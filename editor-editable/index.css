@@ -176,7 +176,7 @@ semantic-tag.pre {
 }
 
 /* Markdown control chars — muted */
-.marker {
+.marker.start {
 	color: #555;
 	font-family: 'Fira Code', monospace;
 	font-size: 0.8em;
@@ -186,6 +186,22 @@ semantic-tag.pre {
 	padding: 1px 4px;
 	border-radius: 3px;
 	margin: 0 1px;
+}
+
+.marker.end {
+	display: inline-block;
+	width: 0;
+	font-size: 0;
+}
+
+.h1 .end,
+.h2 .end,
+.h3 .end,
+.h4 .end,
+.h5 .end,
+.h6 .end,
+.li .end {
+	display: none;
 }
 
 /* HTML tags shown as text */

@@ -153,8 +153,6 @@ export class SemanticTag extends HTMLElement {
         //     content = [document.createTextNode(children)]
         // }
 
-        console.log('class before fill', this.className, "masrker is", marker, "content is", content)
-
         const end = SemanticRules.getPair(marker, true);
         this.className = SemanticRules.markerToClass(marker);
 
@@ -183,12 +181,45 @@ export class SemanticTag extends HTMLElement {
     connectedCallback() {
         this.enforceStructure();
 
-        const observer = new MutationObserver(() => {
+        const observer = new MutationObserver((mutations) => {
+            let isStartMarkerRemoved = false;
+            let isEndMarkerRemoved = false;
+
+            for (const m of mutations) {
+                const removedMarkers = Array.from(m.removedNodes).filter(
+                    (node): node is SemanticMarker =>
+                        node.nodeType === 1 &&
+                        (node as HTMLElement).tagName === "SEMANTIC-MARKER"
+                );
+
+                for (const marker of removedMarkers) {
+                    if (marker.isStart) {
+                        isStartMarkerRemoved = true;
+                    } else {
+                        isEndMarkerRemoved = true;
+                    }
+                }
+            }
+
             observer.disconnect();
-            this.enforceStructure();
-            observer.observe(this, { childList: true });
+            if (isStartMarkerRemoved) {
+                console.debug('[Tag Enforce] Start marker removed. Unwrapping tag:', this.className);
+                this.unwrap();
+            } else if (isEndMarkerRemoved) {
+                console.debug('[Tag Enforce] End marker removed. Resurrecting end marker for:', this.className);
+                this.enforceStructure();
+                observer.observe(this, { childList: true });
+            } else {
+                observer.observe(this, { childList: true });
+            }
         });
         observer.observe(this, { childList: true });
+    }
+
+    private unwrap() {
+        const markers = this.querySelectorAll('semantic-marker');
+        for (const m of markers) m.remove();
+        this.replaceWith(...this.childNodes);
     }
 
     private enforceStructure() {
@@ -202,6 +233,7 @@ export class SemanticTag extends HTMLElement {
             const start = new SemanticMarker(markerChar, true);
             start.className = 'marker start';
             this.prepend(start);
+            console.debug('[Tag Enforce] Resurrected missing start marker:', markerChar, 'inside class:', cls);
         }
 
         // 2. Enforce end marker
@@ -211,28 +243,23 @@ export class SemanticTag extends HTMLElement {
             const end = new SemanticMarker(expectedEnd, false);
             end.className = 'marker end';
             this.appendChild(end);
+            console.debug('[Tag Enforce] Resurrected missing end marker:', expectedEnd, 'inside class:', cls);
         }
     }
 
-    public onMarkerRemove() {
-        this.#endMarker?.remove();
-        this.#startMarker?.remove();
-        this.className = SemanticRules.markerToClass("", this.className);
-    }
-
-    public onMarkerChange(marker: string, isStart = true) {
-        const pair = SemanticRules.getPair(marker, isStart);
-
-        // if we dont check that pair is different from current, these twins will triger updating each other forever
-        if (isStart && this.#endMarker!.textContent !== pair) {
-            this.#endMarker!.textContent = pair
-        }
-        if (!isStart && this.#startMarker!.textContent !== pair) {
-            this.#startMarker!.textContent = pair
-        }
-
-        this.className = SemanticRules.markerToClass(marker);
-    }
+    // public onMarkerChange(marker: string, isStart = true) {
+    //     const pair = SemanticRules.getPair(marker, isStart);
+    // 
+    //     // if we dont check that pair is different from current, these twins will triger updating each other forever
+    //     // if (isStart && this.#endMarker!.textContent !== pair) {
+    //     //     this.#endMarker!.textContent = pair
+    //     // }
+    //     // if (!isStart && this.#startMarker!.textContent !== pair) {
+    //     //     this.#startMarker!.textContent = pair
+    //     // }
+    // 
+    //     this.className = SemanticRules.markerToClass(marker);
+    // }
 
     public grabLeft(isStart = true): string {
         const node = isStart ? this.previousSibling! : this.#endMarker!.previousSibling!;
