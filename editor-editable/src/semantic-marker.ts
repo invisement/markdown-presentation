@@ -30,10 +30,6 @@ export class SemanticMarker extends HTMLElement {
         this.compareAndSync(this.textContent!);
     }
 
-    disconnectedCallback() {
-        this.#parent.onMarkerRemove();
-    }
-
     #leftChar = "";
     #middleChar = "";
     #rightChar = "";
