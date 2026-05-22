@@ -56,21 +56,28 @@ We have successfully implemented the core architecture using a **Type-Driven Ser
 - [X] Replaced the local `MutationObserver` inside `<semantic-tag>` with local child TextNode observation inside the marker.
 - [X] Wired global PubSub orchestration inside `pubsub-flow.ts` to coordinate sibling sync and class updates on marker changes and deletions.
 
-### [ ] Iteration 9: Zero-Width Space (ZWS) and Immutable Intervals
+### [X] Iteration 9: Zero-Width Space (ZWS) and Immutable Intervals
 - **ZWS in Opening Markers:** Explore placing a Zero-Width Space (`\u200B`) at the start of opening markers. This creates an incredibly tactile editor feeling:
   - First backspace empties the visible marker characters.
   - Second backspace deletes the ZWS and tears down the component.
 - **Interval Concept:** When the user starts a tag/marker, they open an interval with active bounds (start and end markers). They can empty the start marker and type anything else, seamlessly shifting styles on the fly.
 
-### [ ] Iteration 10: Block Splitting on Enter (The 3 Options Debate)
+### [X] Iteration 10: Block Splitting on Enter (The 3 Options Debate)
 We are currently evaluating three design paths for block creation on Enter:
 1. **Keep Styles (Current):** Clones the active block style (e.g., `- ` for list item) and nested inline styles to the new line.
 2. **Plain Paragraph Shift:** Always start the new line as a completely plain paragraph (`class="p"`) with no inline formatting.
    - *Why:* It's far simpler, cleaner, and matches native markdown behaviors where starting a new style is as easy as typing a single marker or indent.
 
-### [ ] Iteration 11: Dynamic Boundary & Neighborhood Tracking
+### [X] Iteration 11: Dynamic Boundary & Neighborhood Tracking
 - Implement neighborhood boundary scanning to dynamically check surrounding characters (`markersWithBorders`) for instant activation.
 - Ensure that if an opening marker becomes invalid, it keeps its DOM structure but removes visual styling and sets the closing marker to `display: none`.
+
+### [ ] Iteration 12: back to browser default
+we focus on implementing "break or press enter key" this time through 1) accepting browser behavior and then correcting it (listening to input and not beforeinput).
+Based on what I have seen, it seems browser does a good job excpet it moves them out of the container semantic-tag.
+2) I am thinking of having ZWSP at the beginning if semantic-markers so that it says for one more keystroke after getting empty. It helps with two aspects: the user has time to change the tag into something else like from ## to ```. More impoertanly though, Observer can detect getting empty (change) before getting deleted/removed. This might even change our idea of using web components which comes with own edge case (lie shadow dom and etc).
+changing to div might actually help us in "enter" and cloning.
+
 
 ## Architecture
 

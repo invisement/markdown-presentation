@@ -39,11 +39,12 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
         const triggers = ['*', '`', '~', '_', '#', '-'];
 
         if (e.inputType === "insertParagraph") {
-            e.preventDefault();
-            const sel = window.getSelection()!;
-            const activeTag = sel.anchorNode!.parentElement!.closest('semantic-tag') as SemanticTag;
-            activeTag.split2(sel.anchorNode!, sel.anchorOffset);
-            console.debug("splited", activeTag)
+            // e.preventDefault();
+            // const sel = window.getSelection()!;
+            // const activeTag = sel.anchorNode!.parentElement!.closest('semantic-tag') as SemanticTag;
+            // activeTag.split2(sel.anchorNode!, sel.anchorOffset);
+            // console.debug("splited", activeTag)
+            console.log("skipped")
             return;
         }
 

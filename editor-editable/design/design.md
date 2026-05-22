@@ -2,6 +2,22 @@
 
 This editor is a framework-free, high-performance Markdown editor based on native `contenteditable` and a marker-driven event bus.
 
+
+## Architectural & Coding Principles
+
+### 1. Code Style & Philosophy
+- **Never Patch, Always Architect:** Do not write quick fixes or deeply nested if/else statements to bypass a bug. Analyze the root cause. If an abstraction, custom hook, or utility function is needed, refactor rather than patch.
+- **Dry & Concise:** Prioritize clean, minimal code. Avoid verbose boilerplate. Use modern ES6+, TypeScript utilities, and idiomatic framework patterns (e.g., compound components in React, composition API in Vue).
+- **No Deletions/Placeholders:** Do not truncate code or leave "// rest of the code here" comments unless explicitly asked.
+
+### 2. Think Before Coding
+- Before emitting any code, provide a 2-sentence maximum architectural summary of *why* you are structuring the solution this way.
+- If the requested change violates SOLID principles or our existing project patterns, call it out and propose the correct pattern before writing a single line.
+
+### 3. Pair Programing 
+We are doing pair programing, I ask question and use your superior knowledge and technical ability. I rather you write most codes here. If I approved, I'll tell you to move it to the code base, or I do it.
+
+
 ## Core Architecture
 
 The system is built as a set of decoupled services that communicate via standard DOM events.
