@@ -79,6 +79,7 @@ We are currently evaluating three design paths for block creation on Enter:
 - Replaced manual parent unwraps with the modern browser `moveBefore()` API inside `deletionEndMarker()`. This transfers boundaries and text nodes to the parent element atomically without unmounting them, preventing recursive unmount loops.
 - Added cursor selection safeguards in the central input orchestrator (`editor-orchestrator.ts`) to avoid intercepting keypresses when the cursor is positioned directly inside a caret marker, enabling seamless visual editing of syntax characters.
 
+### [ ] Iteration 13: 
 
 ## Architecture
 

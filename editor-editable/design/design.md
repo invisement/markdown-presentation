@@ -83,8 +83,19 @@ These are non-negotiable design decisions that must be followed. Any deviation m
 - **Readability**: Method names must read like English sentences when called.
     - Example: `domServicer.swapNodes(node, newTag)` is preferred over `domServicer.execute(node, tag)`.
 
+## Unpopular Technical Decisions & Rationale
 
+### 1. Zero Custom Caret Navigation (Trusting Browser Native Editing)
+* **Decision:** We do absolutely nothing to intercept or manage caret/cursor movement. We completely reject custom keyboard event routers for editing operations.
+* **Rationale:** Writing custom caret manipulation logic in `contenteditable` is a notorious source of cross-browser rendering bugs and lag. By leaving editing entirely to native browser defaults, we gain 100% platform-native responsiveness and stability for free. We only intervene during boundary-formatting validations.
 
+### 2. Start-Marker Text as the Absolute Truth (Option A)
+* **Decision:** The raw text node content inside `<semantic-marker>` is the single source of truth. The parent class name (e.g. `pre` or `b`) is a derived projection of that text.
+* **Rationale:** Although deriving styling from marker text requires a small overhead lookup, it guarantees that **no metadata is ever lost**. For example, a code block starting with ```` ```js ```` or ```` ```ts ```` maintains its language signature natively inside the DOM without requiring auxiliary attributes (like `data-language="js"`). It also prevents standard caret-jump issues associated with programmatically rewriting active text inputs.
+
+### 3. Progressive Promotion via `moveBefore`
+* **Decision:** We bypass standard `replaceWith(...this.childNodes)` during tag unwraps in favor of the newer `moveBefore()` API.
+* **Rationale:** Standard DOM transfers trigger a flurry of `disconnectedCallback` cycles, which can cause recursive unwraps during complex browser line splits (like Enter key splits). Utilizing `moveBefore()` transfers caret boundary elements and child nodes atomically without unmounting them, silencing redundant lifecycles and preventing stack crashes natively.
 
 ## PubSub
 
