@@ -23,13 +23,18 @@ A professional, Deno-powered markdown viewer for reading, presenting, and printi
 
 ## Project Structure
 
+This project is configured as a high-performance **Deno 2 Workspace** containing several autonomous modules:
+
 ```text
-├── ui/                 # Frontend source (TS, CSS, MD)
-├── husk/               # Core Framework (Local Submodule)
-├── editor-easymde/     # Markdown Editor (Local Submodule)
-├── ui-dist/            # Incremental Build Output (Git Ignored)
+├── ui/                 # Frontend Presentation View shell
+├── husk/               # Core Framework (Router, Build Tools)
 ├── server.ts           # Deno Entry Point
-└── deno.json           # Project configuration & JSR Imports
+├── deno.json           # Root workspace configuration
+│
+├── editor-editable/    # Premium, observerless custom Web Component Markdown editor
+├── editor-prose/       # ProseMirror-based advanced markdown editor
+├── editor-tiptap/      # TipTap-based rich text editor fallback
+└── editor-easymde/     # Classic EasyMDE Markdown editor fallback
 ```
 
 ## Deno Tasks
