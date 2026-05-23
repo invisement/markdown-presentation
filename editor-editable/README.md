@@ -68,16 +68,13 @@ We are currently evaluating three design paths for block creation on Enter:
 2. **Plain Paragraph Shift:** Always start the new line as a completely plain paragraph (`class="p"`) with no inline formatting.
    - *Why:* It's far simpler, cleaner, and matches native markdown behaviors where starting a new style is as easy as typing a single marker or indent.
 
-### [X] Iteration 11: Decentralized Symmetrical Caret Boundaries (Web Components)
-- Migrated visual Markdown carets from raw spans to native custom elements: `<semantic-marker>` (start boundary) and `<semantic-end-marker>` (end boundary).
-- Completely removed `MutationObservers` from the parent `<semantic-tag>`, making it a 100% observer-free passive container.
-- Decoupled caretaker boundaries to trigger parent mutations via native lifecycle hooks:
-  - Deleting the start marker fires `disconnectedCallback` $\rightarrow$ calls `deletionEndMarker()` to safely unwrap and flatten the tag.
-  - Deleting the end marker fires `disconnectedCallback` $\rightarrow$ calls `resurrectionEndMarker()` to dynamically recreate the missing closing boundary caret.
+### [X] Iteration 11: Decentralized Caret Boundaries
+- **Goal:** Move away from heavy, global parent observers to self-contained caret boundary custom elements (`<semantic-marker>` and `<semantic-end-marker>`).
+- **Feature:** Implement autonomous tag unwrapping and resurrection driven synchronously by native DOM element attachment/detachment lifecycles.
 
-### [X] Iteration 12: High-Performance Caret Moves & Selection Safeguards
-- Replaced manual parent unwraps with the modern browser `moveBefore()` API inside `deletionEndMarker()`. This transfers boundaries and text nodes to the parent element atomically without unmounting them, preventing recursive unmount loops.
-- Added cursor selection safeguards in the central input orchestrator (`editor-orchestrator.ts`) to avoid intercepting keypresses when the cursor is positioned directly inside a caret marker, enabling seamless visual editing of syntax characters.
+### [X] Iteration 12: Browser-Default Line Splits & Symmetrical Unwrapping
+- **Goal:** Resolve unwrap recursion loops and premature unwrapping ("naked tags") when the browser natively splits line structures on Enter.
+- **Feature:** Implement safe tag flattening using `moveBefore` to transfer nodes without triggering unmount lifecycles, and add selection safeguards in the input orchestrator to allow editing inside active markers without keypress interception.
 
 ### [ ] Iteration 13: 
 
