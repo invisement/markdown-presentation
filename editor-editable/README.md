@@ -68,15 +68,16 @@ We are currently evaluating three design paths for block creation on Enter:
 2. **Plain Paragraph Shift:** Always start the new line as a completely plain paragraph (`class="p"`) with no inline formatting.
    - *Why:* It's far simpler, cleaner, and matches native markdown behaviors where starting a new style is as easy as typing a single marker or indent.
 
-### [X] Iteration 11: Dynamic Boundary & Neighborhood Tracking
-- Implement neighborhood boundary scanning to dynamically check surrounding characters (`markersWithBorders`) for instant activation.
-- Ensure that if an opening marker becomes invalid, it keeps its DOM structure but removes visual styling and sets the closing marker to `display: none`.
+### [X] Iteration 11: Decentralized Symmetrical Caret Boundaries (Web Components)
+- Migrated visual Markdown carets from raw spans to native custom elements: `<semantic-marker>` (start boundary) and `<semantic-end-marker>` (end boundary).
+- Completely removed `MutationObservers` from the parent `<semantic-tag>`, making it a 100% observer-free passive container.
+- Decoupled caretaker boundaries to trigger parent mutations via native lifecycle hooks:
+  - Deleting the start marker fires `disconnectedCallback` $\rightarrow$ calls `deletionEndMarker()` to safely unwrap and flatten the tag.
+  - Deleting the end marker fires `disconnectedCallback` $\rightarrow$ calls `resurrectionEndMarker()` to dynamically recreate the missing closing boundary caret.
 
-### [ ] Iteration 12: back to browser default
-we focus on implementing "break or press enter key" this time through 1) accepting browser behavior and then correcting it (listening to input and not beforeinput).
-Based on what I have seen, it seems browser does a good job excpet it moves them out of the container semantic-tag.
-2) I am thinking of having ZWSP at the beginning if semantic-markers so that it says for one more keystroke after getting empty. It helps with two aspects: the user has time to change the tag into something else like from ## to ```. More impoertanly though, Observer can detect getting empty (change) before getting deleted/removed. This might even change our idea of using web components which comes with own edge case (lie shadow dom and etc).
-changing to div might actually help us in "enter" and cloning.
+### [X] Iteration 12: High-Performance Caret Moves & Selection Safeguards
+- Replaced manual parent unwraps with the modern browser `moveBefore()` API inside `deletionEndMarker()`. This transfers boundaries and text nodes to the parent element atomically without unmounting them, preventing recursive unmount loops.
+- Added cursor selection safeguards in the central input orchestrator (`editor-orchestrator.ts`) to avoid intercepting keypresses when the cursor is positioned directly inside a caret marker, enabling seamless visual editing of syntax characters.
 
 
 ## Architecture
