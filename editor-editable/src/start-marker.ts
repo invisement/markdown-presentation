@@ -1,21 +1,16 @@
 import type { SemanticTag } from "./semantic-tag.ts";
-import { classToMarker, SemanticRules } from "./semantic-tag.ts";
+import { SemanticRules } from "./semantic-rules.ts";
 
-export class SemanticMarker extends HTMLElement {
+export class StartMarker extends HTMLElement {
     #parent!: SemanticTag;
     #observer: MutationObserver | null = null;
 
     constructor(marker: string = "") {
         super();
-        this.textContent = '\u200B' + marker;
+        this.textContent = marker;
     }
 
     connectedCallback() {
-        const rawMarker = this.getAttribute('marker') || this.textContent || "";
-        if (!rawMarker.startsWith('\u200B')) {
-            this.textContent = '\u200B' + rawMarker;
-        }
-
         this.#parent = this.parentElement as SemanticTag;
 
         this.#observer = new MutationObserver(() => {
@@ -34,8 +29,7 @@ export class SemanticMarker extends HTMLElement {
     }
 
     private validate(newText: string) {
-        const textWithoutZws = newText.replace(/\u200B/g, '');
-        const parts = split(textWithoutZws);
+        const parts = SemanticRules.splitMarker(newText);
 
         // 1. Push spillovers to neighboring text nodes
         this.pushSpillovers(parts.leftChar, parts.rightChar);
@@ -43,20 +37,20 @@ export class SemanticMarker extends HTMLElement {
         // 2. Reset the marker's own text if spillovers occurred
         if (parts.leftChar || parts.rightChar) {
             this.#observer?.disconnect();
-            this.textContent = '\u200B' + parts.middleChar;
+            this.textContent = parts.middleChar;
             this.#observer?.observe(this, { characterData: true, subtree: true });
         }
 
-        // 3. Derive parent class from the exact middle marker text
-        const newClass = SemanticRules.markerToClass(parts.middleChar);
+        // 3. Derive parent class from the exact middle marker text (which splits pre-wrapped)
+        const newClass = SemanticRules.getClass(parts.middleChar);
 
         if (newClass && newClass !== 'p') {
             this.classList.remove('semantic-alarm');
             this.classList.add('valid');
+            this.#parent.classList.remove('invalid'); // Clear invalid SOT tag status
             this.#parent.className = newClass;
 
-            // Symmetrically cascade expected pair to the end marker
-            const expectedEnd = SemanticRules.getPair(parts.middleChar, true);
+            const expectedEnd = SemanticRules.getClosingMarker(parts.middleChar);
             const endMarker = this.#parent.querySelector('.marker.end');
             if (endMarker) {
                 endMarker.textContent = expectedEnd;
@@ -64,6 +58,7 @@ export class SemanticMarker extends HTMLElement {
         } else {
             this.classList.remove('valid');
             this.classList.add('semantic-alarm');
+            this.#parent.classList.add('invalid'); // Flag SOT parent as invalid
         }
     }
 
@@ -90,46 +85,6 @@ export class SemanticMarker extends HTMLElement {
     }
 }
 
-export class SemanticEndMarker extends HTMLElement {
-    #parent!: SemanticTag;
-
-    connectedCallback() {
-        this.#parent = this.parentElement as SemanticTag;
-    }
-
-    disconnectedCallback() {
-        if (!this.#parent || !this.#parent.isConnected) {
-            return; // Parent tag is dead/unwrapping, ignore!
-        }
-        this.#parent.resurrectionEndMarker();
-    }
-}
-
-export interface MarkerParts {
-    leftChar: string;
-    middleChar: string;
-    rightChar: string;
-}
-
-export function split(markersWithBorders: string): MarkerParts {
-    const pattern = /^([^*`~#\-><]*)([*`~#\-><]+)([\s\S]*)$/;
-    const match = markersWithBorders.match(pattern);
-
-    if (!match) {
-        return { leftChar: "", middleChar: "", rightChar: markersWithBorders };
-    }
-
-    return {
-        leftChar: match[1],
-        middleChar: match[2],
-        rightChar: match[3]
-    };
-}
-
 if (!customElements.get('semantic-marker')) {
-    customElements.define('semantic-marker', SemanticMarker);
-}
-
-if (!customElements.get('semantic-end-marker')) {
-    customElements.define('semantic-end-marker', SemanticEndMarker);
+    customElements.define('semantic-marker', StartMarker);
 }

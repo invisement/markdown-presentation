@@ -6,5 +6,8 @@
   },
   "tasks": {
     "graph": "deno run -A ../husk/utils/logic-graph.ts --in=src --out=../reports/logic-graph.dot"
+  },
+  "compilerOptions": {
+    "lib": ["dom", "esnext"]
   }
 }

@@ -1,25 +1,11 @@
-import { marked, Token } from 'marked';
-import { SemanticTag, SemanticRules } from './semantic-tag.ts';
+import { SemanticTag } from './semantic-tag.ts';
+import { SemanticRules, Token } from './semantic-rules.ts';
 
 /**
  * Contract for Markdown grammar and parsing.
  */
 export interface MarkdownParserFace {
     parse(markdown: string): DocumentFragment;
-}
-
-/**
- * Markdown Grammar Schema - kept for block tag detection in Orchestrator
- */
-export const Schema = {
-    BLOCK_HEADER: /^(#{1,6})\s/,
-    BLOCK_LIST: /^-\s/,
-    BLOCK_CODE: /^```/,
-};
-
-function getMarkerForToken(token: Token): string {
-    if (token.type === 'html') return token.text;
-    return SemanticRules.astToMarker(token.type, (token as any).depth);
 }
 
 /**
@@ -30,7 +16,7 @@ export class MarkdownParser implements MarkdownParserFace {
 
     parse(markdown: string): DocumentFragment {
         const fragment = document.createDocumentFragment();
-        const tokens = marked.lexer(markdown);
+        const tokens = SemanticRules.astTokens(markdown);
 
         for (const token of tokens) {
             if (token.type === 'space') continue;
@@ -46,7 +32,7 @@ export class MarkdownParser implements MarkdownParserFace {
 
         if (token.type === 'list') {
             const fragment = document.createDocumentFragment();
-            token.items?.forEach(item => fragment.appendChild(this.buildNodeBottomUp(item)));
+            token.items?.forEach((item: Token) => fragment.appendChild(this.buildNodeBottomUp(item)));
             return fragment;
         }
 
@@ -54,10 +40,10 @@ export class MarkdownParser implements MarkdownParserFace {
         const children: Node[] = ('tokens' in token && token.tokens)
             ? (token.type === 'list_item'
                 ? token.tokens.flatMap(child =>
-                    (getMarkerForToken(child) === '')
+                    (SemanticRules.getMarkerFromAST(child) === '')
                         ? ('tokens' in child && child.tokens
                             ? child.tokens.map(nestedChild => this.buildNodeBottomUp(nestedChild))
-                            : [document.createTextNode(child.text || '')]
+                            : [document.createTextNode((child as any).text || '')]
                         )
                         : [this.buildNodeBottomUp(child)]
                 )
@@ -67,7 +53,7 @@ export class MarkdownParser implements MarkdownParserFace {
                 ? [document.createTextNode(token.text)]
                 : [];
 
-        const marker = getMarkerForToken(token);
+        const marker = SemanticRules.getMarkerFromAST(token);
         return new SemanticTag().fill(marker, children);
     }
 }

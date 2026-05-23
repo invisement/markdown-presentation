@@ -89,9 +89,9 @@ These are non-negotiable design decisions that must be followed. Any deviation m
 * **Decision:** We do absolutely nothing to intercept or manage caret/cursor movement. We completely reject custom keyboard event routers for editing operations.
 * **Rationale:** Writing custom caret manipulation logic in `contenteditable` is a notorious source of cross-browser rendering bugs and lag. By leaving editing entirely to native browser defaults, we gain 100% platform-native responsiveness and stability for free. We only intervene during boundary-formatting validations.
 
-### 2. Start-Marker Text as the Absolute Truth (Option A)
-* **Decision:** The raw text node content inside `<semantic-marker>` is the single source of truth. The parent class name (e.g. `pre` or `b`) is a derived projection of that text.
-* **Rationale:** Although deriving styling from marker text requires a small overhead lookup, it guarantees that **no metadata is ever lost**. For example, a code block starting with ```` ```js ```` or ```` ```ts ```` maintains its language signature natively inside the DOM without requiring auxiliary attributes (like `data-language="js"`). It also prevents standard caret-jump issues associated with programmatically rewriting active text inputs.
+### 2. ClassName as the Core Structural SOT, Start-Marker as Syntax Descriptor
+* **Decision:** The parent `<semantic-tag>`'s `className` is the absolute Source of Truth for the element's structural type (e.g. `pre`, `h1`, `b`). The `<semantic-marker>` is the syntax descriptor that contains detailed markdown decoration and metadata.
+* **Rationale:** This establishes a clean separation of concerns. The container is the structural unit, allowing fast O(1) type checks. The marker handles raw keyboard inputs and holds auxiliary metadata (like code block language signatures, e.g. ```` ```js ````) which can be queried on demand. When a marker is permanently deleted, we cleanly re-assign the structural SOT (`className = 'p'`) without destructive tag-unwrapping.
 
 ### 3. Progressive Promotion via `moveBefore`
 * **Decision:** We bypass standard `replaceWith(...this.childNodes)` during tag unwraps in favor of the newer `moveBefore()` API.
@@ -139,8 +139,12 @@ We trust the happy path and allow the application to throw a loud exception (e.g
 Not every small code change requires a full end-to-end test or build. Do not run the global build command (`deno task dev:build`) reflexively after minor updates. Trust the code changes, and only run full builds when a significant milestone is reached or when explicitly requested.
 
 ### 3. Interactive Review vs. Session Close-Up (CRITICAL PROCESS RULE)
-* **The Rule**: Do NOT run builds, git commands, or edit documentation/task-trackers after every single minor iteration or code change.
-* **Why**: It typically takes up to 25 cycles of "review and redo" to refine a feature to perfection. Doing build/doc chores 24 times prematurely is highly inefficient.
+* **The Rule**: Do NOT run git commits, pushes, or Deno build commands after every single minor iteration or code change. 
+* **Git & Build Permission Policy**: 
+  - **Git Commits & Pushes:** NEVER run git commits or pushes unless the USER explicitly requests them.
+  - **Deno Builds:** NEVER run compile/build commands unless the USER explicitly requests them.
+  - **Permission-Free Actions:** Reading/writing files locally in current repos, running `git status`, and running `git pull` do **NOT** require any user permission and should be done proactively as needed.
+* **Why**: It typically takes many cycles of "review and redo" to refine a feature to perfection. Doing build/commit chores prematurely is highly inefficient. We are using dev server for (husk) during dev, no need for build untill on-request.
 * **Protocol**: 
   1. During active review, just edit the source files and let the developer do the direct checking.
   2. Perform **ONLY ONE "close-up" phase** (build, git check, documentation/task-tracker updates) at the very end of the session, once both the AI and the developer explicitly agree the work is fully complete.
@@ -221,8 +225,12 @@ If a class is marked as **FROZEN**, no code changes may be made to it without ex
 ## AI Development & Communication Invariants
 
 - **The Rule**: Antigravity/AI developers MUST skip compliments, praise, or introductory flattery in conversation. Interactions must remain strictly direct, technical, and objective.
+- **Git & Build Permissions policy**: 
+  - Git Commits & Pushes are **strictly restricted** and must ONLY be run when explicitly requested by the USER.
+  - Compile / build commands are **strictly restricted** and must ONLY be run when explicitly requested by the USER.
+  - File reading/writing locally, running `git status`, and `git pull` are **fully pre-approved** and do NOT require permission.
 - **Pair Programming & Algorithms**: We care deeply about algorithms (how things are done under the hood). We discuss approaches thoroughly (using chat, diagrams, or iterative edits to the implementation plan) *before* writing code.
-- **Pair Programming & Focus Protocol**: When in active pair programming mode, both participants must proceed with extreme focus and deliberate pacing. We limit edits to a tiny scope (often 1 or 2 files, and only a few targeted lines of code change at a time). We strictly address only the specific task at hand. There must be NO unsolicited refactoring, code formatting, style restructuring, or removal/alteration of existing code comments or documentation. We focus entirely on developing the barebones, happy-path algorithm, postponing all secondary polishing and refactoring until explicitly agreed upon.
+- **Pair Programming & Focus Protocol**: We like focus work. When in active pair programming mode, both participants must proceed with extreme focus and deliberate pacing. We limit edits to a tiny scope (often 1 or 2 files, and only a few targeted lines of code change at a time). We strictly address only the specific task at hand. There must be NO unsolicited refactoring, code formatting, style restructuring, or removal/alteration of existing code comments or documentation. We focus entirely on developing the barebones, happy-path algorithm, postponing all secondary polishing and refactoring until explicitly agreed upon.
 
 ## Development Philosophy: Always Happy Path
 

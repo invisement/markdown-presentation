@@ -76,7 +76,20 @@ We are currently evaluating three design paths for block creation on Enter:
 - **Goal:** Resolve unwrap recursion loops and premature unwrapping ("naked tags") when the browser natively splits line structures on Enter.
 - **Feature:** Implement safe tag flattening using `moveBefore` to transfer nodes without triggering unmount lifecycles, and add selection safeguards in the input orchestrator to allow editing inside active markers without keypress interception.
 
-### [ ] Iteration 13: 
+### [X] Iteration 13: Pure Static Rules, Modular Markers & DOM Simplicity
+- **Goal:** Centralize syntax rules into a cohesive namespace, isolate Zero-Width Space (ZWS) characters, split marker structures modularly, and strip redundant boilerplate.
+- **Features:**
+  - Designed the cohesive static `SemanticRules` class completely encapsulating private ZWS, NBSP, and regex splitters.
+  - Implemented explicit, acrobatics-free AST and Class mapping helpers (`getMarkerFromAST`, `getMarkerFromClass`, `getClass`, `getClosingMarker`, `isMarker`).
+  - Modularized caret elements by splitting them into single-responsibility custom elements: [start-marker.ts](file:///Users/khosro/Projects/markdown-presentation/editor-editable/src/start-marker.ts) and [end-marker.ts](file:///Users/khosro/Projects/markdown-presentation/editor-editable/src/end-marker.ts).
+  - Purged the redundant `DomServicer` wrapper layer entirely, relying on high-performance native browser DOM APIs like `replaceChildren()` and `replaceWith()`.
+  - Fixed a comment-matching regex scope bug inside the Husk Logic-Graph static analysis script.
+
+### [ ] Iteration 14: Inline-Only Unwrapping & Parent Flattening
+- **Goal:** Resolve unwrap spillovers and naked text structures when caret bounds are deleted.
+- **Features:**
+  1. Ensure only inline markers request unwrap.
+  2. First remove parent (semantic-tag), then do with end marker (safer deletion flow).
 
 ## Architecture
 

@@ -2,102 +2,22 @@
  * semantic-tag.ts — The Autonomous Controller for Markdown structures.
  */
 
-/**
- * SemanticRules — Centralized lookup for AST types, CSS classes, and pairing markers.
- */
-export const SemanticRules = {
-    /**
-     * 1. AST -> Marker: Maps a parser AST type to its default start marker.
-     */
-    astToMarker(type: string, depth?: number): string {
-        switch (type) {
-            case 'heading': return '#'.repeat(depth || 1) + ' ';
-            case 'list_item': return '- ';
-            case 'strong': return '**';
-            case 'em': return '*';
-            case 'codespan': return '`';
-            case 'code': return '```\n';
-            default: return '';
-        }
-    },
-
-    /**
-     * 2. Marker -> CSS Class: Maps a start marker to its CSS presentation class.
-     */
-    markerToClass(marker: string, existingClass?: string): string {
-        // Browsers inject non-breaking spaces (\u00a0) in contenteditable. We must strip them.
-        const m = marker.trim().replace(/\u00a0/g, '');
-
-        if (m === '') {
-            if (existingClass) {
-                const isBlock = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p'].includes(existingClass);
-                return isBlock ? 'p' : 'span';
-            }
-            return 'p';
-        }
-
-        if (m === '**') return 'b';
-        if (m === '*') return 'i';
-        if (m === '`') return 'code';
-        if (m.startsWith('#')) return 'h' + m.length;
-        if (m === '-') return 'li';
-        if (m.startsWith('```')) return 'pre';
-        if (m.startsWith('<')) return 'html-tag';
-
-        return 'p';
-    },
-
-    /**
-     * 3. Pairing Rules: Determines the expected opposite marker (symmetric or HTML tags).
-     */
-    getPair(marker: string, isStart: boolean, currentOpposite?: string): string {
-        const selfPairs = ['*', '`', "'", '"', '~']
-        const matchingStarts = ["{", "[", "(", "<"]
-        const matchingEnds = ["}", "]", ")", ">"]
-
-        const m = marker.trim();
-
-        if (selfPairs.includes(m[0])) return m; // if any starts with a self mathcing char, return self
-        if (matchingStarts.includes(m[0])) {
-            let i = matchingStarts.indexOf(m);
-            if (i >= 0) return matchingEnds[i];
-
-            // for block code
-            if (m.startsWith("``")) {
-                return m.match(/^`+/)?.[0] || '';
-            }
-
-            // for html tags
-            if (m.startsWith('<')) {
-                const match = m.match(/<([a-z1-6]+)/i);
-                if (match) return `</${match[1]}>`;
-            }
-        }
-
-        // if it is not in the list like #, it needs no pair => empty
-        return '';
-    }
-}
-
-import { SemanticMarker } from './semantic-marker.ts';
-
-export function classToMarker(cls: string): string {
-    if (cls === 'b') return '**';
-    if (cls === 'i') return '*';
-    if (cls === 'code') return '`';
-    if (cls === 'li') return '- ';
-    if (cls === 'pre') return '```\n';
-    if (cls.startsWith('h')) {
-        const level = parseInt(cls.slice(1)) || 1;
-        return '#'.repeat(level) + ' ';
-    }
-    return '';
-}
+import { SemanticRules } from './semantic-rules.ts';
+import { StartMarker } from './start-marker.ts';
+import './end-marker.ts';
 
 export class SemanticTag extends HTMLElement {
 
+    get isInline(): boolean {
+        return SemanticRules.isInline(this.className);
+    }
+
+    get isBlock(): boolean {
+        return SemanticRules.isBlock(this.className);
+    }
+
     fill(marker: string = "", content: string | Node[] = "") {
-        this.className = SemanticRules.markerToClass(marker);
+        this.className = SemanticRules.getClass(marker);
 
         const startMarker = this.createStartMarker();
         const endMarker = this.createEndMarker();
@@ -126,16 +46,16 @@ export class SemanticTag extends HTMLElement {
         const start = this.querySelector('.marker.start');
         if (!start) return; // No start marker -> no resurrection!
 
-        const markerChar = classToMarker(this.className);
-        const expectedEnd = SemanticRules.getPair(markerChar, true);
+        const markerChar = SemanticRules.getMarkerFromClass(this.className);
+        const expectedEnd = SemanticRules.getClosingMarker(markerChar);
         const freshEnd = this.createEndMarker();
         this.appendChild(freshEnd);
         console.debug('[Tag Enforce] Resurrected missing end marker:', expectedEnd, 'inside class:', this.className);
     }
 
     private createEndMarker() {
-        const marker = classToMarker(this.className);
-        const endPair = SemanticRules.getPair(marker, true);
+        const marker = SemanticRules.getMarkerFromClass(this.className);
+        const endPair = SemanticRules.getClosingMarker(marker);
         const endMarker = document.createElement('semantic-end-marker');
         endMarker.className = 'marker end';
         endMarker.setAttribute('contenteditable', 'false');
@@ -144,8 +64,8 @@ export class SemanticTag extends HTMLElement {
     }
 
     private createStartMarker() {
-        const marker = classToMarker(this.className);
-        const startMarker = new SemanticMarker(marker);
+        const marker = SemanticRules.getMarkerFromClass(this.className);
+        const startMarker = new StartMarker(marker);
         startMarker.className = 'marker start';
         return startMarker;
     }
@@ -163,8 +83,7 @@ export class SemanticTag extends HTMLElement {
     }
 
     public grabRight(isStart = true): string {
-        const isInline = ["b", "i", "code", "del"].includes(this.className);
-        if (isInline) return "";
+        if (this.isInline) return "";
 
         const start = this.querySelector('.marker.start');
         const node = isStart ? start!.nextSibling! : this.nextSibling!;
