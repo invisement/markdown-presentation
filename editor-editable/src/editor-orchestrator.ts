@@ -53,10 +53,14 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
             return;
         }
 
-        // break text into left and right at offset and insert a semantic-tag
         const sel = window.getSelection()!;
-        const text = sel.anchorNode!.textContent!;
         const offset = sel.anchorOffset;
+        const node = sel.anchorNode;
+
+        // do not triger when typing inside markers. (we have listeners on these web components)
+        if (node?.parentElement?.classList.contains('marker')) return;
+
+        const text = node!.textContent!;
         console.debug('[Orchestrator] textContent =', text, 'offset =', offset);
 
         const left = text.substring(0, offset - 1);
@@ -67,7 +71,7 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
         console.debug("empty semantic tag created", semanticTag)
 
         // replace current parent with left, semanticTag, right
-        const parent = sel.anchorNode!.parentElement!;
+        const parent = node!.parentElement!;
         parent.replaceWith(left, semanticTag, right)
     }
 }

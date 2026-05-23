@@ -2,16 +2,6 @@
  * semantic-tag.ts — The Autonomous Controller for Markdown structures.
  */
 
-
-const markerTypes = {
-    inline: ["~", "`", "*", "_", "<"],
-    block: ["-", "#", ">"],
-    inlineClasses: ["i", "b", "code", "u", "html-tag"],
-    blockClasses: ["li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"],
-}
-
-
-
 /**
  * SemanticRules — Centralized lookup for AST types, CSS classes, and pairing markers.
  */
@@ -84,54 +74,14 @@ export const SemanticRules = {
             }
         }
 
-
         // if it is not in the list like #, it needs no pair => empty
         return '';
-
-
-        if (isStart) {
-            let i = matchingStarts.indexOf(m);
-            if (i >= 0) return matchingEnds[i];
-
-            // for block code
-            if (m.startsWith("``")) {
-                return m.match(/^`+/)?.[0] || '';
-            }
-
-            // for html tags
-            if (m.startsWith('<')) {
-                const match = m.match(/<([a-z1-6]+)/i);
-                if (match) return `</${match[1]}>`;
-            }
-        } else {
-            let i = matchingEnds.indexOf(m);
-            if (i >= 0) return matchingStarts[i];
-
-            // for block code
-            if (m.startsWith("``")) {
-                const backticks = m.match(/^`+/)?.[0] || '';
-                if (currentOpposite) {
-                    const currentRest = currentOpposite.replace(/^`+/, '');
-                    return backticks + currentRest;
-                }
-                return backticks;
-            }
-
-            // for html tag
-            if (m.startsWith('</')) {
-                const match = m.match(/<\/([a-z1-6]+)/i);
-                if (match) return `<${match[1]}>`;
-            }
-        }
-
-
-        return '';
     }
-};
+}
 
 import { SemanticMarker } from './semantic-marker.ts';
 
-function classToMarker(cls: string): string {
+export function classToMarker(cls: string): string {
     if (cls === 'b') return '**';
     if (cls === 'i') return '*';
     if (cls === 'code') return '`';
@@ -145,124 +95,65 @@ function classToMarker(cls: string): string {
 }
 
 export class SemanticTag extends HTMLElement {
-    #startMarker: HTMLElement | null = null; // includes defining boundries
-    #endMarker: HTMLElement | null = null;  // includes defininf boundries
 
     fill(marker: string = "", content: string | Node[] = "") {
-        // if (typeof content == "string") {
-        //     content = [document.createTextNode(children)]
-        // }
-
-        const end = SemanticRules.getPair(marker, true);
         this.className = SemanticRules.markerToClass(marker);
 
-        const startMarker = new SemanticMarker(marker, true);
-        startMarker.className = 'marker start';
-
-        const endMarker = new SemanticMarker(end, false);
-        endMarker.className = 'marker end';
-
+        const startMarker = this.createStartMarker();
+        const endMarker = this.createEndMarker();
 
         this.append(startMarker, ...content, endMarker);
 
         return this;
     }
 
-    constructor() {
-        super();
-
-
-
-        // const end = SemanticRules.getPair(marker, true);
-        // this.className = SemanticRules.markerToClass(marker);
-
-    }
-
-    connectedCallback() {
-        this.enforceStructure();
-
-        const observer = new MutationObserver((mutations) => {
-            let isStartMarkerRemoved = false;
-            let isEndMarkerRemoved = false;
-
-            for (const m of mutations) {
-                const removedMarkers = Array.from(m.removedNodes).filter(
-                    (node): node is SemanticMarker =>
-                        node.nodeType === 1 &&
-                        (node as HTMLElement).tagName === "SEMANTIC-MARKER"
-                );
-
-                for (const marker of removedMarkers) {
-                    if (marker.isStart) {
-                        isStartMarkerRemoved = true;
-                    } else {
-                        isEndMarkerRemoved = true;
-                    }
-                }
-            }
-
-            observer.disconnect();
-            if (isStartMarkerRemoved) {
-                console.debug('[Tag Enforce] Start marker removed. Unwrapping tag:', this.className);
-                this.unwrap();
-            } else if (isEndMarkerRemoved) {
-                console.debug('[Tag Enforce] End marker removed. Resurrecting end marker for:', this.className);
-                this.enforceStructure();
-                observer.observe(this, { childList: true });
-            } else {
-                observer.observe(this, { childList: true });
-            }
-        });
-        observer.observe(this, { childList: true });
-    }
-
-    private unwrap() {
-        const markers = this.querySelectorAll('semantic-marker');
+    // Called when the start marker is deleted (user Backspace) to delete end marker and flatten (unwrap) the parent semantic-tag
+    deletionEndMarker() {
+        const markers = this.querySelectorAll('.marker.end');
         for (const m of markers) m.remove();
-        this.replaceWith(...this.childNodes);
+
+        const parent = this.parentNode as any;
+        if (parent) {
+            for (const child of Array.from(this.childNodes)) {
+                parent.moveBefore(child, this);
+            }
+            this.remove();
+        }
     }
 
-    private enforceStructure() {
-        const cls = this.className;
-        const markerChar = classToMarker(cls);
-        if (!markerChar) return; // Plain tags (like "p") have no markers
+    // Called when the end marker is deleted (accidental delete / Enter split)
+    resurrectionEndMarker() {
+        const start = this.querySelector('.marker.start');
+        if (!start) return; // No start marker -> no resurrection!
 
-        // 1. Enforce start marker
-        const first = this.firstChild as HTMLElement;
-        if (!first || first.tagName !== 'SEMANTIC-MARKER' || !first.classList.contains('start')) {
-            const start = new SemanticMarker(markerChar, true);
-            start.className = 'marker start';
-            this.prepend(start);
-            console.debug('[Tag Enforce] Resurrected missing start marker:', markerChar, 'inside class:', cls);
-        }
-
-        // 2. Enforce end marker
-        const last = this.lastChild as HTMLElement;
+        const markerChar = classToMarker(this.className);
         const expectedEnd = SemanticRules.getPair(markerChar, true);
-        if (expectedEnd && (!last || last.tagName !== 'SEMANTIC-MARKER' || !last.classList.contains('end'))) {
-            const end = new SemanticMarker(expectedEnd, false);
-            end.className = 'marker end';
-            this.appendChild(end);
-            console.debug('[Tag Enforce] Resurrected missing end marker:', expectedEnd, 'inside class:', cls);
-        }
+        const freshEnd = this.createEndMarker();
+        this.appendChild(freshEnd);
+        console.debug('[Tag Enforce] Resurrected missing end marker:', expectedEnd, 'inside class:', this.className);
     }
 
-    // public onMarkerChange(marker: string, isStart = true) {
-    //     const pair = SemanticRules.getPair(marker, isStart);
-    // 
-    //     // if we dont check that pair is different from current, these twins will triger updating each other forever
-    //     // if (isStart && this.#endMarker!.textContent !== pair) {
-    //     //     this.#endMarker!.textContent = pair
-    //     // }
-    //     // if (!isStart && this.#startMarker!.textContent !== pair) {
-    //     //     this.#startMarker!.textContent = pair
-    //     // }
-    // 
-    //     this.className = SemanticRules.markerToClass(marker);
-    // }
+    private createEndMarker() {
+        const marker = classToMarker(this.className);
+        const endPair = SemanticRules.getPair(marker, true);
+        const endMarker = document.createElement('semantic-end-marker');
+        endMarker.className = 'marker end';
+        endMarker.setAttribute('contenteditable', 'false');
+        endMarker.textContent = endPair;
+        return endMarker;
+    }
+
+    private createStartMarker() {
+        const marker = classToMarker(this.className);
+        const startMarker = new SemanticMarker(marker);
+        startMarker.className = 'marker start';
+        return startMarker;
+    }
 
     public grabLeft(isStart = true): string {
-        const node = isStart ? this.previousSibling! : this.#endMarker!.previousSibling!;
+        const start = this.querySelector('.marker.start');
+        const end = this.querySelector('.marker.end');
+        const node = isStart ? this.previousSibling! : end!.previousSibling!;
         const leftString = node.textContent!.slice(-20);
 
         if (this.className === "li") {
@@ -275,7 +166,8 @@ export class SemanticTag extends HTMLElement {
         const isInline = ["b", "i", "code", "del"].includes(this.className);
         if (isInline) return "";
 
-        const node = isStart ? this.#startMarker!.nextSibling! : this.nextSibling!;
+        const start = this.querySelector('.marker.start');
+        const node = isStart ? start!.nextSibling! : this.nextSibling!;
         const rightString = node.textContent!.slice(0, 20);
 
         return rightString.at(0)!;

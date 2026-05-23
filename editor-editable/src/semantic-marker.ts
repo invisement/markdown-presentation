@@ -1,61 +1,108 @@
 import type { SemanticTag } from "./semantic-tag.ts";
+import { classToMarker, SemanticRules } from "./semantic-tag.ts";
 
 export class SemanticMarker extends HTMLElement {
-    public isStart = true;
     #parent!: SemanticTag;
-    #observer = new MutationObserver(() => {
-        this.compareAndSync(this.textContent!);
-    });
+    #observer: MutationObserver | null = null;
 
-    constructor(marker: string = "", isStart = true) {
+    constructor(marker: string = "") {
         super();
-        this.textContent = marker;
-        this.isStart = isStart;
-        if (!isStart) {
-            this.setAttribute('contenteditable', 'false');
-        }
+        this.textContent = '\u200B' + marker;
     }
 
     connectedCallback() {
-        if (!this.textContent) { // means it is initiated by html tag, no args, now properties avaiulable and we can use them
-            this.textContent = this.getAttribute('marker');
-            this.isStart = !this.hasAttribute('is-end'); // if is-end is missing, go default is-start
+        const rawMarker = this.getAttribute('marker') || this.textContent || "";
+        if (!rawMarker.startsWith('\u200B')) {
+            this.textContent = '\u200B' + rawMarker;
         }
 
-        if (!this.isStart) {
-            this.setAttribute('contenteditable', 'false');
-        }
+        this.#parent = this.parentElement as SemanticTag;
 
-        this.#parent = this.parentElement as SemanticTag
+        this.#observer = new MutationObserver(() => {
+            this.validate(this.textContent!);
+        });
         this.#observer.observe(this, { characterData: true, subtree: true });
 
-        if (this.textContent === "") return;
-
-        this.compareAndSync(this.textContent!);
+        this.validate(this.textContent!);
     }
 
-    private compareAndSync(newText: string) {
-        if (newText === "" && this.isStart) {
-            this.remove();
-            return;
+    disconnectedCallback() {
+        if (!this.#parent || !this.#parent.isConnected) {
+            return; // Parent tag is dead/unwrapping, ignore!
+        }
+        this.#parent.deletionEndMarker();
+    }
+
+    private validate(newText: string) {
+        const textWithoutZws = newText.replace(/\u200B/g, '');
+        const parts = split(textWithoutZws);
+
+        // 1. Push spillovers to neighboring text nodes
+        this.pushSpillovers(parts.leftChar, parts.rightChar);
+
+        // 2. Reset the marker's own text if spillovers occurred
+        if (parts.leftChar || parts.rightChar) {
+            this.#observer?.disconnect();
+            this.textContent = '\u200B' + parts.middleChar;
+            this.#observer?.observe(this, { characterData: true, subtree: true });
         }
 
-        const cssClass = this.#parent.className;
+        // 3. Derive parent class from the exact middle marker text
+        const newClass = SemanticRules.markerToClass(parts.middleChar);
 
-        const isValid = this.validateParts(cssClass);
-        if (isValid) {
+        if (newClass && newClass !== 'p') {
             this.classList.remove('semantic-alarm');
             this.classList.add('valid');
+            this.#parent.className = newClass;
+
+            // Symmetrically cascade expected pair to the end marker
+            const expectedEnd = SemanticRules.getPair(parts.middleChar, true);
+            const endMarker = this.#parent.querySelector('.marker.end');
+            if (endMarker) {
+                endMarker.textContent = expectedEnd;
+            }
         } else {
             this.classList.remove('valid');
             this.classList.add('semantic-alarm');
         }
     }
 
-    private validateParts(_cssClass: string): boolean {
-        return true;
+    private pushSpillovers(leftChar: string, rightChar: string) {
+        if (leftChar) {
+            const prev = this.previousSibling;
+            if (prev && prev.nodeType === Node.TEXT_NODE) {
+                (prev as Text).appendData(leftChar);
+            } else {
+                const textNode = document.createTextNode(leftChar);
+                this.parentNode?.insertBefore(textNode, this);
+            }
+        }
+
+        if (rightChar) {
+            const next = this.nextSibling;
+            if (next && next.nodeType === Node.TEXT_NODE) {
+                (next as Text).insertData(0, rightChar);
+            } else {
+                const textNode = document.createTextNode(rightChar);
+                this.parentNode?.insertBefore(textNode, this.nextSibling);
+            }
+        }
+    }
+}
+
+export class SemanticEndMarker extends HTMLElement {
+    #parent!: SemanticTag;
+
+    connectedCallback() {
+        this.#parent = this.parentElement as SemanticTag;
     }
 
+    disconnectedCallback() {
+        if (!this.#parent || !this.#parent.isConnected) {
+            return; // Parent tag is dead/unwrapping, ignore!
+        }
+        this.#parent.resurrectionEndMarker();
+    }
 }
 
 export interface MarkerParts {
@@ -63,23 +110,13 @@ export interface MarkerParts {
     middleChar: string;
     rightChar: string;
 }
-// /^([^~]*)(~[\s\S]*~|~)([^~]*)$/
 
-function getPatternForClass(cssClass: string): RegExp {
-    if (/^h[1-6]$/.test(cssClass)) return /^([^#]*)(#[\s\S]*#|#)([^#]*)$/;
-    if (cssClass === "b" || cssClass === "i") return /^([^\*_]*)(\*[\s\S]*\*|\*|_[\s\S]*_|_)([^\*_]*)$/;
-    if (cssClass === "del") return /^([^~]*)(~[\s\S]*~|~)([^~]*)$/;
-    if (cssClass === "li") return /^([^-]*)(-[\s\S]*-|-)([^-]*)$/;
-    if (cssClass === "pre") return /^([^`]*)(`[\s\S]*`|`)([^`]*)$/;
-    if (cssClass === "code") return /^([^`]*)(\`[\s\S]*\`|\`)([^`]*)$/;
-    if (cssClass === "html-tag") return /^([^<]*)(<[\s\S]*>)([^>]*)$/;
-    return /^()(.*)()$/
-}
+export function split(markersWithBorders: string): MarkerParts {
+    const pattern = /^([^*`~#\-><]*)([*`~#\-><]+)([\s\S]*)$/;
+    const match = markersWithBorders.match(pattern);
 
-export function split(markersWithBorders: string, cssClass: string): MarkerParts {
-    const pattern = getPatternForClass(cssClass);
-    const match = markersWithBorders.match(pattern)! || ["", "", "", ""];
-    if (!match) { // null means empty initiation,
+    if (!match) {
+        return { leftChar: "", middleChar: "", rightChar: markersWithBorders };
     }
 
     return {
@@ -91,4 +128,8 @@ export function split(markersWithBorders: string, cssClass: string): MarkerParts
 
 if (!customElements.get('semantic-marker')) {
     customElements.define('semantic-marker', SemanticMarker);
+}
+
+if (!customElements.get('semantic-end-marker')) {
+    customElements.define('semantic-end-marker', SemanticEndMarker);
 }

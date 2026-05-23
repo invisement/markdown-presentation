@@ -20,41 +20,32 @@ We are doing pair programing, I ask question and use your superior knowledge and
 
 ## Core Architecture
 
-The system is built as a set of decoupled services that communicate via standard DOM events.
+The system is built as a set of autonomous, self-contained custom web components that handle their own states synchronously and communicate directly with each other.
 
-### 1. The Marker-Driven Event Bus
-Instead of observing every keystroke, we only observe the **Markdown Markers** (`md-ctrl`).
-- **Input**: User modifies a marker (e.g., `# ` -> `## `).
-- **Signal**: The marker's `MutationObserver` dispatches an `md:ctrl-change` event.
-- **Action**: The `EditorCore` receives the event and decides whether to sync a partner or swap the parent tag.
+### 1. Decentralized Caret Boundaries
+Instead of a global orchestrator or broad DOM observers, each Markdown component manages its own lifecycle natively:
+- **State Presentation (`<semantic-tag>`)**: An observer-free tag container whose styling class (e.g. `b`, `i`, `code`, `h1`) serves as the single source of truth.
+- **Start Caret (`<semantic-marker>`)**: Captures keystrokes, performs text validation, handles style swaps, and pushes out spillover text synchronously.
+- **End Caret (`<semantic-end-marker>`)**: A passive paired boundarycaret.
 
-### 2. Services (The Contracts)
-
-#### `DomService` (DOM Manipulation)
-- **Responsibility**: Creation, transformation (swap), and cursor management.
-- **Philosophy**: Use `anchorOffset` to maintain focus during structural changes.
-
-#### `MarkdownParser` (Grammar)
-- **Responsibility**: Turning Markdown strings into structural DOM trees.
-- **Philosophy**: Including the trailing space (e.g., `# `) inside the marker to signify block intent.
-
-#### `EditorCore` (Orchestration)
-- **Responsibility**: State transitions and event routing.
-- **Philosophy**: "Melt" markers into text when they are no longer valid by re-parsing the line.
+### 2. Autonomous Lifecycles
+- **Tag Unwrapping**: Removing the start marker (`<semantic-marker>`) natively triggers `disconnectedCallback()`, which calls `deletionEndMarker()` on the parent tag to safely flatten the tag tree.
+- **Tag Resurrection**: Removing the end marker (`<semantic-end-marker>`) natively triggers `disconnectedCallback()`, which calls `resurrectionEndMarker()` on the parent to dynamically restore the missing caret boundary.
+- **High-Performance Native Promotion (`moveBefore`)**: The parent tag uses the experimental, high-performance `moveBefore` DOM translation API during unwrap procedures, moving children cleanly without unmounting them and bypassing redundant lifecycle reactions.
 
 ## Key Principles
 
 1. **The Space Rule**: Block markers like `# ` or `- ` must include a trailing space to be active.
-2. **Silent Syncing**: Partner markers (like the second `**`) are updated via a silent `syncContent` method that doesn't trigger redundant events.
-3. **Muted Syntax**: Markers are real text nodes but are styled to be "muted" via CSS, maintaining a clean WYSIWYG feel without losing the structural source of truth.
+2. **Dynamic Format Swapping**: The start marker's text is the controller of the state. Typing inside the marker updates the text, which dynamically recalculates and swaps the parent tag's class.
+3. **Muted Syntax**: Markers are real, visible text nodes but are styled to be "muted" via index.css, maintaining a beautiful WYSIWYG feel without losing the markdown source of truth.
 
-## Event Sequence
+## Caret Validation Sequence
 
-1. **Change Detected**: `MutationObserver` on `<md-ctrl>` triggers.
-2. **Event Dispatched**: `md:ctrl-change` bubbles to document.
-3. **Decision Made**: `getTargetTag()` checks if a swap is needed.
-4. **DOM Manipulation**: `DomService` performs a `swap()` or `re-parse()`.
-5. **Cursor Restored**: `anchorOffset` is re-applied to the new node.
+1. **Typing**: The user types a character inside `<semantic-marker>`.
+2. **Evaluation**: The marker splits the text content into `leftChar` (spillover), `middleChar` (markdown syntax), and `rightChar` (spillover).
+3. **Spillover Push (Give)**: The marker pushes non-markdown characters to neighboring text nodes.
+4. **Tag Swap**: If `middleChar` changed, we resolve the new class and project it onto `<semantic-tag>`.
+5. **End Caret Cascade**: The parent updates the `<semantic-end-marker>` text dynamically to match the expected closing pair.
 
 ## Architecture Invariants
 

@@ -6,50 +6,50 @@
 div#editor [contenteditable="true"]
 │
 ├── semantic-tag.h1
-│   ├── span.marker.start →  "# "
-│   └── span.content       →  "Hello "
+│   ├── semantic-marker.marker.start       →  "# "
+│   └── text                               →  "Hello "
 │
 ├── semantic-tag.p
-│   ├── span.marker.start →  ""
-│   └── span.content       →  "A line with "
+│   ├── semantic-marker.marker.start       →  ""
+│   └── text                               →  "A line with "
 │       ├── semantic-tag.code
-│       │   ├── span.marker.start →  "`"
-│       │   ├── span.content       →  "code"
-│       │   └── span.marker.end   →  "`"
-│       ├── text               →  " and "
-│       ├── span.marker.html-tag →  "<mark>"
-│       ├── text               →  "highlighted"
-│       └── span.marker.html-tag →  "</mark>"
+│       │   ├── semantic-marker.marker.start   →  "`"
+│       │   ├── text                           →  "code"
+│       │   └── semantic-end-marker.marker.end →  "`"
+│       ├── text                           →  " and "
+│       ├── semantic-marker.marker.start   →  "<mark>"
+│       ├── text                           →  "highlighted"
+│       └── semantic-end-marker.marker.end →  "</mark>"
 │
 └── semantic-tag.li
-    ├── span.marker.start  →  "- "
-    └── span.content       →  "first item "
+    ├── semantic-marker.marker.start       →  "- "
+    └── text                               →  "first item "
         └── semantic-tag.b
-            ├── span.marker.start  →  "**"
-            ├── span.content       →  "bold"
-            └── span.marker.end    →  "**"
+            ├── semantic-marker.marker.start   →  "**"
+            ├── text                           →  "bold"
+            └── semantic-end-marker.marker.end →  "**"
 ```
 
 ## Translation Rules
 
 ### Block-level (line → wrapper element)
 
-| Markdown pattern       | Component State          | Internal Markers (`span.marker`) |
-|------------------------|--------------------------|---------------------------------|
-| `# text`               | `<semantic-tag class="h1">` | `span.marker.start` ("# ")    |
-| `## text`              | `<semantic-tag class="h2">` | `span.marker.start` ("## ")   |
-| `- item`               | `<semantic-tag class="li">` | `span.marker.start` ("- ")    |
-| `` ``` ``              | `<semantic-tag class="pre">`| `start` (`` ``` ``) + `end`   |
+| Markdown pattern       | Component State          | Internal Markers |
+|------------------------|--------------------------|------------------|
+| `# text`               | `<semantic-tag class="h1">` | `semantic-marker.marker.start` ("# ")    |
+| `## text`              | `<semantic-tag class="h2">` | `semantic-marker.marker.start` ("## ")   |
+| `- item`               | `<semantic-tag class="li">` | `semantic-marker.marker.start` ("- ")    |
+| `` ``` ``              | `<semantic-tag class="pre">`| `start` (`` ``` ``) + `end` (`semantic-end-marker`)|
 | plain text             | `<semantic-tag class="p">`  | (empty start marker)          |
 
 ### Inline (within a line)
 
-| Markdown pattern       | Component State          | Internal Markers (`span.marker`) |
-|------------------------|--------------------------|---------------------------------|
+| Markdown pattern       | Component State          | Internal Markers |
+|------------------------|--------------------------|------------------|
 | `**text**`             | `<semantic-tag class="b">`  | `start` (`**`) + `end` (`**`)   |
 | `*text*`               | `<semantic-tag class="i">`  | `start` (`*`) + `end` (`*`)     |
 | `` `text` ``           | `<semantic-tag class="code">`| `start` (`` ` ``) + `end` (`` ` ``)|
-| `<tag>text</tag>`      | `span.marker.html-tag`      | (Direct HTML spans, no wrapper) |
+| `<tag>text</tag>`      | `<semantic-tag class="html-tag">` | `start` (`<tag>`) + `end` (`</tag>`) |
 
 ### Key Invariant
 
