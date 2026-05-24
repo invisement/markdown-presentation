@@ -6,28 +6,28 @@
 div#editor [contenteditable="true"]
 │
 ├── semantic-tag.h1
-│   ├── semantic-marker.marker.start       →  "# "
+│   ├── start-marker.marker.start          →  "# "
 │   └── text                               →  "Hello "
 │
 ├── semantic-tag.p
-│   ├── semantic-marker.marker.start       →  ""
+│   ├── start-marker.marker.start          →  ""
 │   └── text                               →  "A line with "
 │       ├── semantic-tag.code
-│       │   ├── semantic-marker.marker.start   →  "`"
+│       │   ├── start-marker.marker.start      →  "`"
 │       │   ├── text                           →  "code"
-│       │   └── semantic-end-marker.marker.end →  "`"
+│       │   └── end-marker.marker.end          →  "`"
 │       ├── text                           →  " and "
-│       ├── semantic-marker.marker.start   →  "<mark>"
+│       ├── start-marker.marker.start      →  "<mark>"
 │       ├── text                           →  "highlighted"
-│       └── semantic-end-marker.marker.end →  "</mark>"
+│       └── end-marker.marker.end          →  "</mark>"
 │
 └── semantic-tag.li
-    ├── semantic-marker.marker.start       →  "- "
+    ├── start-marker.marker.start          →  "- "
     └── text                               →  "first item "
         └── semantic-tag.b
-            ├── semantic-marker.marker.start   →  "**"
+            ├── start-marker.marker.start      →  "**"
             ├── text                           →  "bold"
-            └── semantic-end-marker.marker.end →  "**"
+            └── end-marker.marker.end          →  "**"
 ```
 
 ## Translation Rules
@@ -36,10 +36,10 @@ div#editor [contenteditable="true"]
 
 | Markdown pattern       | Component State          | Internal Markers |
 |------------------------|--------------------------|------------------|
-| `# text`               | `<semantic-tag class="h1">` | `semantic-marker.marker.start` ("# ")    |
-| `## text`              | `<semantic-tag class="h2">` | `semantic-marker.marker.start` ("## ")   |
-| `- item`               | `<semantic-tag class="li">` | `semantic-marker.marker.start` ("- ")    |
-| `` ``` ``              | `<semantic-tag class="pre">`| `start` (`` ``` ``) + `end` (`semantic-end-marker`)|
+| `# text`               | `<semantic-tag class="h1">` | `start-marker.marker.start` ("# ")    |
+| `## text`              | `<semantic-tag class="h2">` | `start-marker.marker.start` ("## ")   |
+| `- item`               | `<semantic-tag class="li">` | `start-marker.marker.start` ("- ")    |
+| `` ``` ``              | `<semantic-tag class="pre">`| `start` (`` ``` ``) + `end` (`end-marker`)|
 | plain text             | `<semantic-tag class="p">`  | (empty start marker)          |
 
 ### Inline (within a line)

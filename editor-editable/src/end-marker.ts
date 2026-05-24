@@ -5,16 +5,16 @@ export class EndMarker extends HTMLElement {
 
     connectedCallback() {
         this.#parent = this.parentElement as SemanticTag;
+        this.#parent.enforceStructure();
     }
 
     disconnectedCallback() {
-        if (!this.#parent || !this.#parent.isConnected) {
-            return; // Parent tag is dead/unwrapping, ignore!
-        }
-        this.#parent.resurrectionEndMarker();
+        // NOTE: The user cannot manually alter or delete the end-marker, 
+        // but the browser natively removes it during "breaking/splitting" line transformations.
+        this.#parent.enforceStructure();
     }
 }
 
-if (!customElements.get('semantic-end-marker')) {
-    customElements.define('semantic-end-marker', EndMarker);
+if (!customElements.get('end-marker')) {
+    customElements.define('end-marker', EndMarker);
 }

@@ -19,46 +19,42 @@ export class StartMarker extends HTMLElement {
         this.#observer.observe(this, { characterData: true, subtree: true });
 
         this.validate(this.textContent!);
+        this.#parent.enforceStructure();
     }
 
     disconnectedCallback() {
-        if (!this.#parent || !this.#parent.isConnected) {
-            return; // Parent tag is dead/unwrapping, ignore!
-        }
-        this.#parent.deletionEndMarker();
+        this.#parent.enforceStructure();
     }
 
     private validate(newText: string) {
         const parts = SemanticRules.splitMarker(newText);
 
-        // 1. Push spillovers to neighboring text nodes
+        // 1. Push spillovers (parts.leftChar and parts.rightChar are strictly spillovers now!)
         this.pushSpillovers(parts.leftChar, parts.rightChar);
 
-        // 2. Reset the marker's own text if spillovers occurred
-        if (parts.leftChar || parts.rightChar) {
+        // 2. Reset the marker's own text content only if it actually changed (prevents caret jumps)
+        if (this.textContent !== parts.middleChar) {
             this.#observer?.disconnect();
             this.textContent = parts.middleChar;
             this.#observer?.observe(this, { characterData: true, subtree: true });
         }
 
-        // 3. Derive parent class from the exact middle marker text (which splits pre-wrapped)
+        // 3. Derive parent class from the exact middle marker text
         const newClass = SemanticRules.getClass(parts.middleChar);
 
-        if (newClass && newClass !== 'p') {
-            this.classList.remove('semantic-alarm');
-            this.classList.add('valid');
-            this.#parent.classList.remove('invalid'); // Clear invalid SOT tag status
-            this.#parent.className = newClass;
+        // 4. Update validation classes and parent className SOT
+        this.classList.toggle('valid', !!newClass);
+        this.#parent.classList.toggle('invalid', !newClass);
 
-            const expectedEnd = SemanticRules.getClosingMarker(parts.middleChar);
-            const endMarker = this.#parent.querySelector('.marker.end');
-            if (endMarker) {
-                endMarker.textContent = expectedEnd;
-            }
-        } else {
-            this.classList.remove('valid');
-            this.classList.add('semantic-alarm');
-            this.#parent.classList.add('invalid'); // Flag SOT parent as invalid
+        if (newClass) {
+            this.#parent.className = newClass;
+        }
+
+        // 5. Update EndMarker content (To be fully purged in Iteration 17)
+        const expectedEnd = SemanticRules.getClosingMarker(parts.middleChar);
+        const endMarker = this.#parent.querySelector(':scope > .marker.end');
+        if (endMarker) {
+            endMarker.textContent = expectedEnd;
         }
     }
 
@@ -85,6 +81,6 @@ export class StartMarker extends HTMLElement {
     }
 }
 
-if (!customElements.get('semantic-marker')) {
-    customElements.define('semantic-marker', StartMarker);
+if (!customElements.get('start-marker')) {
+    customElements.define('start-marker', StartMarker);
 }

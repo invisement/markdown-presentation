@@ -27,39 +27,73 @@ export class SemanticTag extends HTMLElement {
         return this;
     }
 
-    // Called when the start marker is deleted (user Backspace) to handle cleanup
-    deletionEndMarker() {
-        if (this.isInline) {
-            const markers = this.querySelectorAll('.marker.end');
-            for (const m of markers) m.remove();
+    connectedCallback() {
+        // Run initial structural check on mount
+        this.enforceStructure();
+    }
 
-            // Inline tag -> flatten (unwrap) the parent semantic-tag
-            const parent = this.parentNode as any;
-            if (parent) {
-                for (const child of Array.from(this.childNodes)) {
-                    parent.moveBefore(child, this);
-                }
-                this.remove();
+    enforceStructure() {
+        const start = this.querySelector(':scope > .marker.start');
+        const end = this.querySelector(':scope > .marker.end');
+
+        // Rule 1: if no end-marker (user CANT alter end-marker, deleted by browser): resurrect end-marker.
+        if (!end) {
+            this.resurrectEndMarker();
+        }
+
+        // Rule 2: if no start-marker (user deleted), delete end-marker. 
+        // Then for inline, dissolve the semantic-tag parent; for block, reclass to p.
+        if (!start) {
+            const ends = this.querySelectorAll(':scope > .marker.end');
+            for (const m of ends) m.remove();
+
+            if (this.isBlock) {
+                this.reclassBlockTag();
+            } else {
+                this.unwrapInlineTag();
             }
         }
     }
 
-    // Called when the end marker is deleted (accidental delete / Enter split)
-    resurrectionEndMarker() {
-        const start = this.querySelector('.marker.start');
-        if (!start) return; // No start marker -> no resurrection!
-
-        const markerChar = SemanticRules.getMarkerFromClass(this.className);
-        const expectedEnd = SemanticRules.getClosingMarker(markerChar);
+    private resurrectEndMarker() {
         const freshEnd = this.createEndMarker();
         this.appendChild(freshEnd);
-        console.debug('[Tag Enforce] Resurrected missing end marker:', expectedEnd, 'inside class:', this.className);
+        console.debug('[Tag Enforce] Resurrected missing end-marker inside class:', this.className);
+    }
+
+    private resurrectStartMarker() {
+        const freshStart = this.createStartMarker();
+        this.prepend(freshStart);
+        console.debug('[Tag Enforce] Resurrected missing start-marker inside class:', this.className);
+    }
+
+    private reclassBlockTag() {
+        // Block tag -> reclass to p (using SemanticRules to resolve paragraph class dynamically)
+        const pClass = SemanticRules.getClass("") || 'p';
+        this.className = pClass;
+
+        // Repopulate paragraph boundaries
+        this.resurrectStartMarker();
+        this.resurrectEndMarker();
+        console.debug('[Tag Enforce] Block start-marker deleted, reclassed to p and restored empty boundaries');
+    }
+
+    private unwrapInlineTag() {
+        // Inline tag -> dissolve (unwrap) the semantic-tag parent
+        const parent = this.parentNode as any;
+        if (parent) {
+            for (const child of Array.from(this.childNodes)) {
+                parent.moveBefore(child, this);
+            }
+            this.remove();
+        }
+        console.debug('[Tag Enforce] Inline start-marker deleted, dissolved parent');
     }
 
     private createEndMarker() {
         const marker = SemanticRules.getMarkerFromClass(this.className);
         const endPair = SemanticRules.getClosingMarker(marker);
-        const endMarker = document.createElement('semantic-end-marker');
+        const endMarker = document.createElement('end-marker');
         endMarker.className = 'marker end';
         endMarker.setAttribute('contenteditable', 'false');
         endMarker.textContent = endPair;
@@ -74,8 +108,8 @@ export class SemanticTag extends HTMLElement {
     }
 
     public grabLeft(isStart = true): string {
-        const start = this.querySelector('.marker.start');
-        const end = this.querySelector('.marker.end');
+        const start = this.querySelector(':scope > .marker.start');
+        const end = this.querySelector(':scope > .marker.end');
         const node = isStart ? this.previousSibling! : end!.previousSibling!;
         const leftString = node.textContent!.slice(-20);
 
@@ -88,7 +122,7 @@ export class SemanticTag extends HTMLElement {
     public grabRight(isStart = true): string {
         if (this.isInline) return "";
 
-        const start = this.querySelector('.marker.start');
+        const start = this.querySelector(':scope > .marker.start');
         const node = isStart ? start!.nextSibling! : this.nextSibling!;
         const rightString = node.textContent!.slice(0, 20);
 

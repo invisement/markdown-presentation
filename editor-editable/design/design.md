@@ -17,20 +17,26 @@ This editor is a framework-free, high-performance Markdown editor based on nativ
 ### 3. Pair Programing 
 We are doing pair programing, I ask question and use your superior knowledge and technical ability. I rather you write most codes here. If I approved, I'll tell you to move it to the code base, or I do it.
 
+### 4. Pacing & Scope
+- **One Iteration Per Session:** Every session is devoted to at most one iteration.
+- **Incremental Planning:** Each session typically consists of around 20 chat turns before completion. Therefore, plans must be sized rationally, targeting 10% to 100% of a single iteration per session, never more.
+
+
 
 ## Core Architecture
 
 The system is built as a set of autonomous, self-contained custom web components that handle their own states synchronously and communicate directly with each other.
 
 ### 1. Decentralized Caret Boundaries
-Instead of a global orchestrator or broad DOM observers, each Markdown component manages its own lifecycle natively:
-- **State Presentation (`<semantic-tag>`)**: An observer-free tag container whose styling class (e.g. `b`, `i`, `code`, `h1`) serves as the single source of truth.
-- **Start Caret (`<semantic-marker>`)**: Captures keystrokes, performs text validation, handles style swaps, and pushes out spillover text synchronously.
-- **End Caret (`<semantic-end-marker>`)**: A passive paired boundarycaret.
+Instead of a global orchestrator or broad DOM observers, each Markdown component manages its own boundaries natively:
+- **State Presentation (`<semantic-tag>`)**: An observer-free tag container whose styling class (e.g. `b`, `i`, `code`, `h1`) serves as the single source of truth and enforces its own structure.
+- **Start Caret (`<start-marker>`)**: Captures keystrokes, performs text validation, handles style swaps, and pushes out spillover text synchronously. It triggers the parent's structural check on lifecycle events.
+- **End Caret (`<end-marker>`)**: A passive paired boundary caret that triggers the parent's structural check on connection and disconnection.
 
-### 2. Autonomous Lifecycles
-- **Tag Unwrapping**: Removing the start marker (`<semantic-marker>`) natively triggers `disconnectedCallback()`, which calls `deletionEndMarker()` on the parent tag to safely flatten the tag tree.
-- **Tag Resurrection**: Removing the end marker (`<semantic-end-marker>`) natively triggers `disconnectedCallback()`, which calls `resurrectionEndMarker()` on the parent to dynamically restore the missing caret boundary.
+### 2. Autonomous Lifecycles & Centralized Enforcement
+- **Centralized Enforcement**: `<semantic-tag>`'s `enforceStructure()` is the exclusive method that validates boundaries. Start and end carets act as passive triggers calling `enforceStructure()` upon connection or disconnection.
+- **Symmetrical End Caret Healing**: If the `<end-marker>` is missing (cloning or splitting), the parent automatically resurrects it.
+- **Logical Format Unwrapping**: If the `<start-marker>` is deleted on an inline tag, the parent removes the end-marker and flattens/unwraps the tag structure. If it is a block tag, it demotes the tag to a plain paragraph (`p`).
 - **High-Performance Native Promotion (`moveBefore`)**: The parent tag uses the experimental, high-performance `moveBefore` DOM translation API during unwrap procedures, moving children cleanly without unmounting them and bypassing redundant lifecycle reactions.
 
 ## Key Principles
@@ -136,10 +142,13 @@ This graph serves as our **Architectural Truth**, allowing us to verify that log
 
 ## Additional Engineering Principles
 
-### 1. Fail-Fast / Trust the Happy Path
-We strictly avoid defensive programming that "silences" structural errors. If an element's invariant is broken (e.g., a required marker span is unexpectedly deleted), we do **not** use early returns or optional chaining (e.g., `if (!element) return;`) to hide the error under the carpet. 
+### 1. Fail-Fast / Trust the Happy Path (Zero Defensive Coding & Prediction)
+We strictly avoid defensive programming that "silences" structural errors. If an element's invariant is broken (e.g., a required marker span is unexpectedly deleted), we do **not** use early returns or optional chaining (e.g., `if (!element) return;`) to hide the error under the carpet. We never predict or anticipate hypothetical conditions.
 
 We trust the happy path and allow the application to throw a loud exception (e.g., `TypeError: Cannot read properties of null`). This "fail-fast" principle ensures that impossible-to-debug zombie states never exist in production, forcing us to correctly address the root structural bugs immediately during development.
+
+> [!WARNING]
+> **The Red Flag Rule:** Every single `if` check, fallback branch, or error handling blocks catching or treating `null`, `undefined`, `empty`, or hardcoded value boundaries (like `p`, etc.) is considered an architectural **Red Flag**. Such blocks must be discussed very carefully before creation. The necessity for these defensive checks is a symptom of a larger architectural mistake, which requires us to review the entire codebase instead of patching it locally.
 
 ### 2. On-Demand Building
 Not every small code change requires a full end-to-end test or build. Do not run the global build command (`deno task dev:build`) reflexively after minor updates. Trust the code changes, and only run full builds when a significant milestone is reached or when explicitly requested.
@@ -261,6 +270,8 @@ If a class is marked as **FROZEN**, no code changes may be made to it without ex
 
 3. **Fallback Structuring on Invalid Markers:**
    If an opening marker becomes invalid (e.g. missing its space rule or syntax character), the element retains its exact structural DOM container but removes all visual CSS styling. Under these conditions, the partner closing marker should be set to hidden (`display: none`) to keep the editor clean and clear.
+
+
 
 
 

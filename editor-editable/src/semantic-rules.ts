@@ -16,8 +16,8 @@ export class SemanticRules {
     static readonly ZWS = '\u200B';
     static readonly NBSP = '\u00a0';
 
-    static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p', 'ul', 'ol'];
-    static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span', 'html-tag'];
+    static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p', 'ul', 'ol', 'html-tag', 'blockquote'];
+    static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span'];
     static readonly markers = ['*', '`', '~', '_', '#', '-'];
 
     static isInline(cls: string): boolean {
@@ -72,13 +72,18 @@ export class SemanticRules {
     /**
      * 3. Start-Marker -> CSS Class: Maps a ZWS-integrated start-marker to its CSS class name.
      */
-    static getClass(marker: string): string {
+    static getClass(marker: string): string | null {
         const ZWS = SemanticRules.ZWS;
         const NBSP = SemanticRules.NBSP;
+
+        // Explicit mapping for empty/paragraph markers
+        if (marker === ZWS || marker === '') return 'p';
+
         if (marker === ZWS + '**') return 'b';
         if (marker === ZWS + '*') return 'i';
         if (marker === ZWS + '`') return 'code';
         if (marker === ZWS + '- ' || marker === ZWS + '-' + NBSP) return 'li';
+        if (marker === ZWS + '> ' || marker === ZWS + '>' + NBSP) return 'blockquote';
         if (marker.startsWith(ZWS + '```')) return 'pre';
         if (marker.startsWith(ZWS + '<')) return 'html-tag';
 
@@ -88,7 +93,7 @@ export class SemanticRules {
             if (level >= 1 && level <= 6) return 'h' + level;
         }
 
-        return 'p';
+        return null; // Zero default fallback!
     }
 
     /**
@@ -125,7 +130,7 @@ export class SemanticRules {
      * 5. Text-Splitting Regex & ZWS Abstraction
      */
     private static split(markersWithBorders: string): MarkerParts {
-        const pattern = /^([^*`~#\-><]*)([*`~#\-><]+)([\s\S]*)$/;
+        const pattern = /^([^*`~#\-><\s]*)([*`~#\-><]+(?:\s|\u00a0)?)([\s\S]*)$/;
         const match = markersWithBorders.match(pattern);
 
         if (!match) {

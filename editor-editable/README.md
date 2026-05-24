@@ -85,15 +85,22 @@ We are currently evaluating three design paths for block creation on Enter:
   - Purged the redundant `DomServicer` wrapper layer entirely, relying on high-performance native browser DOM APIs like `replaceChildren()` and `replaceWith()`.
   - Fixed a comment-matching regex scope bug inside the Husk Logic-Graph static analysis script.
 
-### [ ] Iteration 14: Inline-Only Unwrapping & Parent Flattening
-- **Goal:** Resolve unwrap spillovers and naked text structures when caret bounds are deleted.
-- **Features:**
-  1. Ensure only inline markers request unwrap.
-  2. First remove parent (semantic-tag), then do with end marker (safer deletion flow).
+### [X] Iteration 14: Centralized Boundary Enforcement & Passive Caret Triggers
+- **Goal:** Fix the issue where splitting tags with Enter leaves cloned elements missing their start-markers, and eliminate active caretaker dependencies by establishing a pure parent-enforced lifecycle.
+- **Completed Features:**
+  - **Standard Element Names**: Standardized registration of caret tags as `<start-marker>` and `<end-marker>`.
+  - **Centralized Enforcer**: Placed all boundary validation inside a unified `enforceStructure()` checkpoint in `<semantic-tag>`, partitioned into three clean, single-responsibility helper methods for maximum readability.
+  - **Passive Lifecycle Triggers**: Configured standard `connectedCallback()` and `disconnectedCallback()` triggers on `<start-marker>` and `<end-marker>` elements to notify the parent `<semantic-tag>` upon lifecycle events.
+  - **Logical Unwrapping & Demoting**: Formulated robust split rules (missing start-marker dissolves and clears inline formatting, and demotes block tags to plain paragraphs `p` using `SemanticRules` without hardcoding).
 
+### [ ] Iteration 15: Bug 2: Start-marker defining borders and left-boundary push/pull spillovers (Next Session)
+- **Goal:** Resolve border styling issues on start-markers and fix the left-side boundary push/pull spillover text insertion inside `StartMarker.pushSpillovers()`.
 
-### [ ] Interation 15:
-pressing enter and backspace in # title *head | ing* makes it fail
+### [ ] Iteration 16: Unifying Marker Construction & Resolving Dual-Creation Path Debt
+- **Goal:** Refactor `<semantic-tag>` to autonomously build and enforce its own marker structure upon connection, eliminating manual marker population in `.fill()` and removing defensive checks.
+
+### [ ] Iteration 17: Purging Dynamic `EndMarker` Content Updates
+- **Goal:** Completely eliminate Keystroke-level content updates to the paired `<end-marker>` from `StartMarker.validate()`, as closing markers only need to be populated during Markdown export, simplifying runtime orchestration.
 
 ## Architecture
 
