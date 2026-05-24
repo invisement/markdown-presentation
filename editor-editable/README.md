@@ -91,6 +91,10 @@ We are currently evaluating three design paths for block creation on Enter:
   1. Ensure only inline markers request unwrap.
   2. First remove parent (semantic-tag), then do with end marker (safer deletion flow).
 
+
+### [ ] Interation 15:
+pressing enter and backspace in # title *head | ing* makes it fail
+
 ## Architecture
 
 The project is built with TypeScript and bundled via `esbuild`.
@@ -110,7 +114,7 @@ This project is part of a Deno 2 workspace. To develop locally:
 4. Open `http://localhost:8000/editor-editable/index.html`.
 
 ## Verification Invariant
-- **Roundtrip**: `editor.innerText` must always return the valid original Markdown source.
+- **Roundtrip**: The editor's `textContent` (either strictly at all moments, or weaker upon request/serialization) must always return the valid original Markdown source.
 - **Muted Syntax**: `md-ctrl` elements should be visually distinct (grey/small/mono) but fully editable.
 
 ## Design Principles

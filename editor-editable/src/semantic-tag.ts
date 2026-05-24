@@ -27,17 +27,20 @@ export class SemanticTag extends HTMLElement {
         return this;
     }
 
-    // Called when the start marker is deleted (user Backspace) to delete end marker and flatten (unwrap) the parent semantic-tag
+    // Called when the start marker is deleted (user Backspace) to handle cleanup
     deletionEndMarker() {
-        const markers = this.querySelectorAll('.marker.end');
-        for (const m of markers) m.remove();
+        if (this.isInline) {
+            const markers = this.querySelectorAll('.marker.end');
+            for (const m of markers) m.remove();
 
-        const parent = this.parentNode as any;
-        if (parent) {
-            for (const child of Array.from(this.childNodes)) {
-                parent.moveBefore(child, this);
+            // Inline tag -> flatten (unwrap) the parent semantic-tag
+            const parent = this.parentNode as any;
+            if (parent) {
+                for (const child of Array.from(this.childNodes)) {
+                    parent.moveBefore(child, this);
+                }
+                this.remove();
             }
-            this.remove();
         }
     }
 

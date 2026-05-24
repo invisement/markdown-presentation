@@ -38,6 +38,9 @@ Instead of a global orchestrator or broad DOM observers, each Markdown component
 1. **The Space Rule**: Block markers like `# ` or `- ` must include a trailing space to be active.
 2. **Dynamic Format Swapping**: The start marker's text is the controller of the state. Typing inside the marker updates the text, which dynamically recalculates and swaps the parent tag's class.
 3. **Muted Syntax**: Markers are real, visible text nodes but are styled to be "muted" via index.css, maintaining a beautiful WYSIWYG feel without losing the markdown source of truth.
+4. **The `textContent` Pillar (Not `innerText`)**: The editor's `textContent` is our absolute architectural source of truth for generating valid Markdown. We completely reject the use of `innerText` because it triggers expensive browser layout reflows and behaves inconsistently across platforms. This is governed by two rules:
+    - **Strict Rule**: The editor's raw `textContent` at any given moment yields the exact, valid, desired Markdown.
+    - **Weaker Rule**: Upon request, `textContent` through a layout-independent update/transformation (such as joining block `textContent` elements with newlines) yields the legit desired Markdown.
 
 ## Caret Validation Sequence
 
@@ -61,9 +64,12 @@ These are non-negotiable design decisions that must be followed. Any deviation m
     4. Call `sel.collapse(node, savedOffset)` to ensure the cursor is perfectly placed.
 - **Constraint**: Never use global character-offset scanning.
 
-### 2. Explicit Markdown Source
-- **The Rule**: `editor.innerText` MUST always return the valid original Markdown source.
-- **Constraint**: No "phantom" nodes or hidden data that doesn't exist in the Markdown.
+### 2. Explicit Markdown Source (`textContent` Invariant)
+- **The Rule**: The editor's `textContent` (either natively or through a simple layout-free transformation) MUST always return the valid, legit desired Markdown source. We NEVER use `innerText` in the codebase.
+- **Constraint**: No "phantom" nodes or hidden metadata text that doesn't exist in the Markdown may pollute the text stream.
+- **The Invariant Rules**:
+    1. **Strict Rule**: The raw `editorNode.textContent` at any given moment yields the exact, valid, desired Markdown.
+    2. **Weaker Rule**: Upon request/serialization, `textContent` through a fast, layout-independent DOM-traversal transformation (e.g. `Array.from(editor.childNodes).map(n => n.textContent).join('\n')`) yields the legit desired Markdown.
 
 ### 3. DOM Encapsulation (Exclusive Ownership)
 - **The Rule**: `DomServicer` is the **exclusive** owner of all DOM mutations.

@@ -16,8 +16,8 @@ export class SemanticRules {
     static readonly ZWS = '\u200B';
     static readonly NBSP = '\u00a0';
 
-    static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p'];
-    static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span'];
+    static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p', 'ul', 'ol'];
+    static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span', 'html-tag'];
     static readonly markers = ['*', '`', '~', '_', '#', '-'];
 
     static isInline(cls: string): boolean {
