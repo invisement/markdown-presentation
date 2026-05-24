@@ -153,16 +153,21 @@ We trust the happy path and allow the application to throw a loud exception (e.g
 ### 2. On-Demand Building
 Not every small code change requires a full end-to-end test or build. Do not run the global build command (`deno task dev:build`) reflexively after minor updates. Trust the code changes, and only run full builds when a significant milestone is reached or when explicitly requested.
 
-### 3. Interactive Review vs. Session Close-Up (CRITICAL PROCESS RULE)
-* **The Rule**: Do NOT run git commits, pushes, or Deno build commands after every single minor iteration or code change. 
-* **Git & Build Permission Policy**: 
-  - **Git Commits & Pushes:** NEVER run git commits or pushes unless the USER explicitly requests them.
-  - **Deno Builds:** NEVER run compile/build commands unless the USER explicitly requests them.
-  - **Permission-Free Actions:** Reading/writing files locally in current repos, running `git status`, and running `git pull` do **NOT** require any user permission and should be done proactively as needed.
-* **Why**: It typically takes many cycles of "review and redo" to refine a feature to perfection. Doing build/commit chores prematurely is highly inefficient. We are using dev server for (husk) during dev, no need for build untill on-request.
-* **Protocol**: 
-  1. During active review, just edit the source files and let the developer do the direct checking.
-  2. Perform **ONLY ONE "close-up" phase** (build, git check, documentation/task-tracker updates) at the very end of the session, once both the AI and the developer explicitly agree the work is fully complete.
+### 3. Session-Closing or Iteration-Closing Ceremony (CRITICAL PROCESS RULE)
+* **The Rule**: Git commits, pushes, and build commands are strictly restricted and must **only** be executed upon explicit user/developer request. We refer to this process as the **Closing Ceremony**.
+* **The Ceremony Steps**: Upon developer request to close the session or iteration, the AI must proactively perform the following steps:
+  1. **Documentation Update**: Thoroughly update the core documentation (`design.md`, `README.md`, and `spec.md`) to reflect the completed state.
+  2. **Active Iteration Logs**: Update iteration logs in `README.md` (and related files) with feature-based explanations, specifying completed features under the current iteration.
+  3. **Next Iteration Preparation**: Explicitly formulate and document the goal and scope of the next iteration in the `README.md` based on active bugs or planned milestones.
+  4. **Code Compile (Build)**: Execute the Deno/compiler build command (`deno task build` or equivalent) to ensure all assets bundle cleanly without compilation errors.
+  5. **Version Control**: Stage all modified documentation and source code, commit with a highly descriptive commit message summarizing the design change, and push to the origin repository.
+
+### 3b. Session-Opening Ceremony (Token Reduction / Clear Context)
+* **The Rule**: At the start of a new session, the primary goal of the **Opening Ceremony** is to **clear window context to reduce token usage** and purge cached state, starting fresh without carrying over redundant context.
+* **The Ceremony Steps**:
+  1. **Summarize and Focus**: Provide a highly condensed summary of the overall status of the project.
+  2. **Iteration Review**: Review the active iteration registered in the `README.md` and reiterate the immediate next plan and what we are working on.
+  3. **Context Reduction**: Retain only the bare minimum information needed to start the new session successfully, discarding all intermediate chat history or redundant scratchpad contexts (acting like "emptying trash, summarizing, focusing, and erasing cache").
 
 ### 4. Strict Refactoring Definition
 When we say "Refactor", it has a very specific meaning: **No logic or major code changes.** Refactoring means strictly reorganizing existing logic—moving files, splitting classes, stitching components together, renaming, or restructuring. If business logic *must* be changed, we do it *after* the initial refactor is complete, and only with careful deliberation. We do not mix logic changes with structural refactoring.
