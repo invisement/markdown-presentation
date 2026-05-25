@@ -7,18 +7,24 @@ import { marked, Token } from 'marked';
 export type { Token };
 
 export interface MarkerParts {
-    leftChar: string;
-    middleChar: string;
-    rightChar: string;
+    leftChars: string;
+    middleChars: string;
+    rightChars: string;
 }
+
+export interface BorderGrabber {
+    (input: string): string | undefined;
+}
+
 
 export class SemanticRules {
     static readonly ZWS = '\u200B';
     static readonly NBSP = '\u00a0';
 
-    static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'p', 'ul', 'ol', 'html-tag', 'blockquote'];
-    static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span'];
-    static readonly markers = ['*', '`', '~', '_', '#', '-'];
+    static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'p', 'ul', 'ol', 'html-tag', 'blockquote'];
+    static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span', 'pre'];
+    static readonly markers = ['*', '`', '~', '_', '#', '-', '>', '<'];
+    static readonly blanks = [" ", "\t", "\n"]
 
     static isInline(cls: string): boolean {
         return SemanticRules.inlineClasses.includes(cls);
@@ -32,6 +38,10 @@ export class SemanticRules {
         return SemanticRules.markers.includes(char);
     }
 
+    static isBlank(char: string): boolean {
+        return SemanticRules.blanks.includes(char)
+    }
+
     static astTokens(markdown: string) {
         return marked.lexer(markdown);
     }
@@ -42,8 +52,8 @@ export class SemanticRules {
     static getMarkerFromAST(token: Token): string {
         const tagName = token.type;
         const ZWS = SemanticRules.ZWS;
-        if (tagName === 'heading') return ZWS + '#'.repeat(token.depth || 1) + ' ';
-        if (tagName === 'list_item') return ZWS + '- ';
+        if (tagName === 'heading') return ZWS + '#'.repeat(token.depth || 1);
+        if (tagName === 'list_item') return ZWS + '-';
         if (tagName === 'strong') return ZWS + '**';
         if (tagName === 'em') return ZWS + '*';
         if (tagName === 'codespan') return ZWS + '`';
@@ -60,11 +70,11 @@ export class SemanticRules {
         if (cls === 'b') return ZWS + '**';
         if (cls === 'i') return ZWS + '*';
         if (cls === 'code') return ZWS + '`';
-        if (cls === 'li') return ZWS + '- ';
+        if (cls === 'li') return ZWS + '-';
         if (cls === 'pre') return ZWS + '```\n';
         if (cls.startsWith('h')) {
             const level = parseInt(cls.slice(1)) || 1;
-            return ZWS + '#'.repeat(level) + ' ';
+            return ZWS + '#'.repeat(level);
         }
         return '';
     }
@@ -72,9 +82,8 @@ export class SemanticRules {
     /**
      * 3. Start-Marker -> CSS Class: Maps a ZWS-integrated start-marker to its CSS class name.
      */
-    static getClass(marker: string): string | null {
+    static getClass(marker: string): string {
         const ZWS = SemanticRules.ZWS;
-        const NBSP = SemanticRules.NBSP;
 
         // Explicit mapping for empty/paragraph markers
         if (marker === ZWS || marker === '') return 'p';
@@ -82,18 +91,77 @@ export class SemanticRules {
         if (marker === ZWS + '**') return 'b';
         if (marker === ZWS + '*') return 'i';
         if (marker === ZWS + '`') return 'code';
-        if (marker === ZWS + '- ' || marker === ZWS + '-' + NBSP) return 'li';
-        if (marker === ZWS + '> ' || marker === ZWS + '>' + NBSP) return 'blockquote';
+        if (marker === ZWS + '-') return 'li';
+        if (marker === ZWS + '>') return 'blockquote';
         if (marker.startsWith(ZWS + '```')) return 'pre';
         if (marker.startsWith(ZWS + '<')) return 'html-tag';
 
         // Explicit heading match
-        if (marker.startsWith(ZWS + '#') && (marker.endsWith(' ') || marker.endsWith(NBSP))) {
-            const level = marker.slice(1, -1).length; // Skip ZWS and trailing space to count '#'
+        if (marker.startsWith(ZWS + '#')) {
+            const level = marker.slice(1).length; // Skip ZWS to count '#'
             if (level >= 1 && level <= 6) return 'h' + level;
         }
 
-        return null; // Zero default fallback!
+        return 'invalid'; // Zero default fallback!
+    }
+
+    static validate(className: string, leftChars: string, rightChars: string): string {
+        if (className === undefined || leftChars === undefined || rightChars === undefined) return "undefined";
+        else return className;
+    }
+
+    static extractLeftParts(content: string): { spillOver: string, leftBorder: string } {
+        const fromLastNonBlank = /^([\s\S]*?)([^ \t][ \t]*)$/
+
+        const parts = content.match(fromLastNonBlank)
+        if (!parts) { // means when content is nothing but blank
+            return { spillOver: "", leftBorder: "" }
+        }
+        return { spillOver: parts?.at(1)!, leftBorder: parts?.at(2)! }
+    }
+
+    static extractRightParts(content: string): { rightBorder: string, spillOver: string } {
+        const untilFirstNonBlank = /^([ \t]*[^ \t])([\s\S]*)$/
+
+        const parts = content.match(untilFirstNonBlank)
+        return { rightBorder: parts?.at(1)!, spillOver: parts?.at(2)! }
+    }
+
+    static checkLeftStatus(leftChars: string, className: string, pullExtra: (className: string) => string): { status: string, spillOver: string, leftBorder: string } {
+        const ifBlankOnly = !leftChars.trim();
+
+        if (ifBlankOnly) {// then it needs to pull extras
+            const extra = pullExtra(className) || "\n";
+            leftChars = extra + leftChars;
+        }
+
+        let { spillOver, leftBorder } = SemanticRules.extractLeftParts(leftChars);
+
+        // condition: for block it must have \n, for inlines must have blank
+        const char = leftBorder.at(-1)!;
+        const isBorderValid = SemanticRules.isBlock(className) ? leftBorder.includes("\n") : SemanticRules.isBlank(char);
+
+        const status = isBorderValid ? "valid" : "invalid";
+        return { status, spillOver, leftBorder };
+    }
+
+    static checkRightStatus(rightChars: string, className: string, pullExtra: (className: string) => string): { status: string, spillOver: string, rightBorder: string } {
+        // no check for inline
+        if (SemanticRules.isInline(className)) return { status: "valid", spillOver: "", rightBorder: "" }
+
+        const ifBlankOnly = !rightChars.trim();
+
+        if (ifBlankOnly) {// then it needs to pull extras
+            const extra = pullExtra(className) || "\n";
+            rightChars = rightChars + extra;
+        }
+
+        // condition: block markers must come before a blank.
+        const rightBorder = rightChars.slice(0, 1);
+        const spillOver = rightChars.slice(1);
+        const isBorderValid = SemanticRules.blanks.includes(rightBorder);
+        const status = isBorderValid ? "valid" : "invalid";
+        return { status, spillOver, rightBorder };
     }
 
     /**
@@ -123,37 +191,26 @@ export class SemanticRules {
             if (match) return `</${match[1]}>`;
         }
 
+        // for else which are blocks like p, h1, >, -
         return '';
     }
 
     /**
      * 5. Text-Splitting Regex & ZWS Abstraction
      */
-    private static split(markersWithBorders: string): MarkerParts {
-        const pattern = /^([^*`~#\-><\s]*)([*`~#\-><]+(?:\s|\u00a0)?)([\s\S]*)$/;
+    public static split(markersWithBorders: string): MarkerParts {
+        const pattern = /^([\s\S]*?)(\u200B[\s><*_-]*)([\s\S]*)$/;
         const match = markersWithBorders.match(pattern);
 
         if (!match) {
-            return { leftChar: "", middleChar: "", rightChar: markersWithBorders };
+            return { leftChars: "", middleChars: "", rightChars: markersWithBorders };
         }
 
         return {
-            leftChar: match[1],
-            middleChar: match[2],
-            rightChar: match[3]
+            leftChars: match[1],
+            middleChars: match[2],
+            rightChars: match[3]
         };
     }
 
-    static splitMarker(newText: string): MarkerParts {
-        const ZWS = SemanticRules.ZWS;
-        const hasZws = newText.startsWith(ZWS);
-        const textWithoutZws = hasZws ? newText.slice(1) : newText;
-        const parts = SemanticRules.split(textWithoutZws);
-
-        return {
-            leftChar: parts.leftChar,
-            middleChar: ZWS + parts.middleChar,
-            rightChar: parts.rightChar
-        };
-    }
 }

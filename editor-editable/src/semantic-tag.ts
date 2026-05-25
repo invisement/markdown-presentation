@@ -8,13 +8,6 @@ import './end-marker.ts';
 
 export class SemanticTag extends HTMLElement {
 
-    get isInline(): boolean {
-        return SemanticRules.isInline(this.className);
-    }
-
-    get isBlock(): boolean {
-        return SemanticRules.isBlock(this.className);
-    }
 
     fill(marker: string = "", content: string | Node[] = "") {
         this.className = SemanticRules.getClass(marker);
@@ -101,7 +94,10 @@ export class SemanticTag extends HTMLElement {
     }
 
     private createStartMarker() {
-        const marker = SemanticRules.getMarkerFromClass(this.className);
+        let marker = SemanticRules.getMarkerFromClass(this.className);
+        if (this.className.startsWith('h') || this.className === 'li' || this.className === 'blockquote') {
+            marker += ' ';
+        }
         const startMarker = new StartMarker(marker);
         startMarker.className = 'marker start';
         return startMarker;
@@ -120,7 +116,7 @@ export class SemanticTag extends HTMLElement {
     }
 
     public grabRight(isStart = true): string {
-        if (this.isInline) return "";
+        if (SemanticRules.isInline(this.className)) return "";
 
         const start = this.querySelector(':scope > .marker.start');
         const node = isStart ? start!.nextSibling! : this.nextSibling!;

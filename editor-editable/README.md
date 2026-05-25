@@ -93,13 +93,20 @@ We are currently evaluating three design paths for block creation on Enter:
   - **Passive Lifecycle Triggers**: Configured standard `connectedCallback()` and `disconnectedCallback()` triggers on `<start-marker>` and `<end-marker>` elements to notify the parent `<semantic-tag>` upon lifecycle events.
   - **Logical Unwrapping & Demoting**: Formulated robust split rules (missing start-marker dissolves and clears inline formatting, and demotes block tags to plain paragraphs `p` using `SemanticRules` without hardcoding).
 
-### [ ] Iteration 15: Bug 2: Start-marker defining borders and left-boundary push/pull spillovers (Next Session)
-- **Goal:** Resolve border styling issues on start-markers and fix the left-side boundary push/pull spillover text insertion inside `StartMarker.pushSpillovers()`.
+### [X] Iteration 15: Start-marker defining borders and left/right-boundary push/pull spillovers
+- **Goal:** Resolve border styling issues on start-markers and implement left/right boundary push/pull spillovers using standard context pulling.
+- **Completed Features:**
+  - **Left and Right boundary checks**: Integrated `checkLeftStatus` and `checkRightStatus` to validate boundaries and determine spillovers.
+  - **Virtual Sentinel evaluation**: Solved initial load crashes at the document start using pure, DOM-independent virtual newlines (`"\n"`).
+  - **Push and Pull helpers**: Built symmetrical `pullFromLeft`, `pullFromRight`, `pushToLeft`, and `pushToRight` methods inside `StartMarker` to isolate DOM text node extraction and injection.
 
-### [ ] Iteration 16: Unifying Marker Construction & Resolving Dual-Creation Path Debt
+### [ ] Iteration 16: Verification and Integrity Check
+- **Goal:** Go through all start-markers and print the CSS class, left boundary (`#left`), middle syntax (`#middle`), and right boundary (`#right`) states. Check if all resolved information is 100% correct. If any bugs arise, prioritize resolving them.
+
+### [ ] Iteration 17: Unifying Marker Construction & Resolving Dual-Creation Path Debt
 - **Goal:** Refactor `<semantic-tag>` to autonomously build and enforce its own marker structure upon connection, eliminating manual marker population in `.fill()` and removing defensive checks.
 
-### [ ] Iteration 17: Purging Dynamic `EndMarker` Content Updates
+### [ ] Iteration 18: Purging Dynamic `EndMarker` Content Updates
 - **Goal:** Completely eliminate Keystroke-level content updates to the paired `<end-marker>` from `StartMarker.validate()`, as closing markers only need to be populated during Markdown export, simplifying runtime orchestration.
 
 ## Architecture
