@@ -24,7 +24,31 @@ export class SemanticRules {
     static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'p', 'ul', 'ol', 'html-tag', 'blockquote'];
     static readonly inlineClasses = ['b', 'i', 'code', 'del', 'span', 'pre'];
     static readonly markers = ['*', '`', '~', '_', '#', '-', '>', '<'];
-    static readonly blanks = [" ", "\t", "\n"]
+    static readonly blanks = [" ", "\t"]
+
+    static readonly blankString = " \\t";
+    static readonly markerString = "\\*\\`\\~\\_\\#\\-\\>\\<";
+
+    private static get LEFT_BOUNDARY_PATTERN(): RegExp {
+        return new RegExp(`^([\\s\\S]*?)([^${SemanticRules.blankString}][${SemanticRules.blankString}]*)$`);
+    }
+
+    private static get RIGHT_BOUNDARY_PATTERN(): RegExp {
+        return new RegExp(`^([${SemanticRules.blankString}]*[^${SemanticRules.blankString}])([\\s\\S]*)$`);
+    }
+
+    private static get HTML_SPLIT_PATTERN(): RegExp {
+        return /^([\s\S]*?)(\u200B<[^>]*>)([\s\S]*)$/;
+    }
+
+    private static get FENCE_SPLIT_PATTERN(): RegExp {
+        return /^([\s\S]*?)(\u200B`{3,}[a-zA-Z0-9]*)([\s\S]*)$/;
+    }
+
+    private static get MARKER_SPLIT_PATTERN(): RegExp {
+        return new RegExp(`^([\\s\\S]*?)(\\u200B[${SemanticRules.markerString}]*)([\\s\\S]*)$`);
+    }
+
 
     static isInline(cls: string): boolean {
         return SemanticRules.inlineClasses.includes(cls);
@@ -111,20 +135,16 @@ export class SemanticRules {
     }
 
     static extractLeftParts(content: string): { spillOver: string, leftBorder: string } {
-        const fromLastNonBlank = /^([\s\S]*?)([^ \t][ \t]*)$/
-
-        const parts = content.match(fromLastNonBlank)
+        const parts = content.match(SemanticRules.LEFT_BOUNDARY_PATTERN);
         if (!parts) { // means when content is nothing but blank
             return { spillOver: "", leftBorder: "" }
         }
-        return { spillOver: parts?.at(1)!, leftBorder: parts?.at(2)! }
+        return { spillOver: parts[1], leftBorder: parts[2] }
     }
 
     static extractRightParts(content: string): { rightBorder: string, spillOver: string } {
-        const untilFirstNonBlank = /^([ \t]*[^ \t])([\s\S]*)$/
-
-        const parts = content.match(untilFirstNonBlank)
-        return { rightBorder: parts?.at(1)!, spillOver: parts?.at(2)! }
+        const parts = content.match(SemanticRules.RIGHT_BOUNDARY_PATTERN);
+        return { rightBorder: parts![1], spillOver: parts![2] }
     }
 
     static checkLeftStatus(leftChars: string, className: string, pullExtra: (className: string) => string): { status: string, spillOver: string, leftBorder: string } {
@@ -198,8 +218,14 @@ export class SemanticRules {
     /**
      * 5. Text-Splitting Regex & ZWS Abstraction
      */
-    public static split(markersWithBorders: string): MarkerParts {
-        const pattern = /^([\s\S]*?)(\u200B[\s><*_-]*)([\s\S]*)$/;
+    public static split(markersWithBorders: string, className: string = ""): MarkerParts {
+        let pattern = SemanticRules.MARKER_SPLIT_PATTERN;
+        if (className === 'pre') {
+            pattern = SemanticRules.FENCE_SPLIT_PATTERN;
+        } else if (className === 'html-tag') {
+            pattern = SemanticRules.HTML_SPLIT_PATTERN;
+        }
+
         const match = markersWithBorders.match(pattern);
 
         if (!match) {

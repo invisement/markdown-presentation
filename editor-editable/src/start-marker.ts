@@ -50,7 +50,7 @@ export class StartMarker extends HTMLElement {
         const content = this.textContent;
         let className = ""
 
-        const { leftChars, middleChars, rightChars } = SemanticRules.split(content);
+        const { leftChars, middleChars, rightChars } = SemanticRules.split(content, this.#parent.className);
 
         // check new class
         if (middleChars !== this.#middle) {

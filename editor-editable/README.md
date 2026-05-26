@@ -100,11 +100,15 @@ We are currently evaluating three design paths for block creation on Enter:
   - **Virtual Sentinel evaluation**: Solved initial load crashes at the document start using pure, DOM-independent virtual newlines (`"\n"`).
   - **Push and Pull helpers**: Built symmetrical `pullFromLeft`, `pullFromRight`, `pushToLeft`, and `pushToRight` methods inside `StartMarker` to isolate DOM text node extraction and injection.
 
-### [ ] Iteration 16: Verification and Integrity Check
-- **Goal:** Go through all start-markers and print the CSS class, left boundary (`#left`), middle syntax (`#middle`), and right boundary (`#right`) states. Check if all resolved information is 100% correct. If any bugs arise, prioritize resolving them.
+### [X] Iteration 16: Verification and Integrity Check
+- **Goal:** Conduct a row-by-row integrity trace of start-marker states, resolve structural class demotion bugs, and organize regex engines inside `semantic-rules.ts` cleanly.
+- **Completed Features:**
+  - **Class-Aware Splitting:** Refactored the text-splitting engine to choose a specific regex pattern (`pre`, `html-tag`, or standard markers) based on active tag type, successfully isolating HTML tag attributes and code fences.
+  - **Reorganized Dynamic Registry:** Moved all regex engines to self-documenting static getters, dynamically consuming `markers` and `blanks` properties for robust control without hardcoded characters.
+  - **Dynamic Invalidation:** Resolved class demotions by executing boundary validations on every change cycle, fallback-invalidating active classes if boundary checks evaluate to `'invalid'`.
 
-### [ ] Iteration 17: Unifying Marker Construction & Resolving Dual-Creation Path Debt
-- **Goal:** Refactor `<semantic-tag>` to autonomously build and enforce its own marker structure upon connection, eliminating manual marker population in `.fill()` and removing defensive checks.
+### [ ] Iteration 17: Verification and Sibling Symmetrical Healing Exercise
+- **Goal:** Conduct the verification exercise again (comprehensively listing all start-markers inside the sample document, checking their boundary validity, and verifying class mappings). Find any active bugs or mismatches, resolve them, and continue unifying autonomous boundary construction.
 
 ### [ ] Iteration 18: Purging Dynamic `EndMarker` Content Updates
 - **Goal:** Completely eliminate Keystroke-level content updates to the paired `<end-marker>` from `StartMarker.validate()`, as closing markers only need to be populated during Markdown export, simplifying runtime orchestration.

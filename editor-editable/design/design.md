@@ -148,7 +148,11 @@ We strictly avoid defensive programming that "silences" structural errors. If an
 We trust the happy path and allow the application to throw a loud exception (e.g., `TypeError: Cannot read properties of null`). This "fail-fast" principle ensures that impossible-to-debug zombie states never exist in production, forcing us to correctly address the root structural bugs immediately during development.
 
 > [!WARNING]
-> **The Red Flag Rule:** Every single `if` check, fallback branch, or error handling blocks catching or treating `null`, `undefined`, `empty`, or hardcoded value boundaries (like `p`, etc.) is considered an architectural **Red Flag**. Such blocks must be discussed very carefully before creation. The necessity for these defensive checks is a symptom of a larger architectural mistake, which requires us to review the entire codebase instead of patching it locally.
+> **THE ABSOLUTE RULE OF ZERO TOLERANCE FOR DEFENSIVE CODING:**
+> * WE DO NOT GIVE A SHIT ABOUT SAFEGUARDS, CATCHING NULLS, OR PREDICTING FUTURE AND STOCK MARKET EDGES.
+> * WE ABSOLUTELY HAVE ZERO TOLERANCE FOR A SINGLE SAFEGUARD, NULL CHECK, OR OPTIONAL CHAINING BLOCK THAT SILENCES ERRORS.
+> * **LET THE FUCKING THING FAIL.** IF SOMETHING IS NULL OR UNEXPECTED, LET NATIVE RUNTIME EXCEPTIONS BLOW UP LOUDLY AND IMMEDIATELY.
+> * Every single `if` check, fallback branch, or error-handling block catching `null`, `undefined`, `empty`, or hardcoded values is considered an architectural **Red Flag** and must be strictly avoided. The necessity for these defensive checks is a symptom of a larger architectural mistake, which requires us to review the entire codebase instead of patching it locally.
 
 ### 2. On-Demand Building
 Not every small code change requires a full end-to-end test or build. Do not run the global build command (`deno task dev:build`) reflexively after minor updates. Trust the code changes, and only run full builds when a significant milestone is reached or when explicitly requested.

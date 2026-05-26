@@ -95,35 +95,11 @@ export class SemanticTag extends HTMLElement {
 
     private createStartMarker() {
         let marker = SemanticRules.getMarkerFromClass(this.className);
-        if (this.className.startsWith('h') || this.className === 'li' || this.className === 'blockquote') {
-            marker += ' ';
-        }
         const startMarker = new StartMarker(marker);
         startMarker.className = 'marker start';
         return startMarker;
     }
 
-    public grabLeft(isStart = true): string {
-        const start = this.querySelector(':scope > .marker.start');
-        const end = this.querySelector(':scope > .marker.end');
-        const node = isStart ? this.previousSibling! : end!.previousSibling!;
-        const leftString = node.textContent!.slice(-20);
-
-        if (this.className === "li") {
-            return leftString.match(/.\s*$/)![0];
-        }
-        return leftString.at(-1)!;
-    }
-
-    public grabRight(isStart = true): string {
-        if (SemanticRules.isInline(this.className)) return "";
-
-        const start = this.querySelector(':scope > .marker.start');
-        const node = isStart ? start!.nextSibling! : this.nextSibling!;
-        const rightString = node.textContent!.slice(0, 20);
-
-        return rightString.at(0)!;
-    }
 }
 
 if (!customElements.get('semantic-tag')) {
