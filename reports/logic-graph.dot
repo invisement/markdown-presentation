@@ -13,48 +13,60 @@ digraph logic {
   }
   subgraph "cluster_SemanticTag" {
     label = "SemanticTag";
-    "semantic-tag.ts:SemanticTag" [label="<fill> fill | <resurrectionEndMarker> resurrectionEndMarker | <deletionEndMarker> deletionEndMarker | <createEndMarker> createEndMarker | <createStartMarker> createStartMarker | <grabRight> grabRight", URL="semantic-tag.ts", tooltip="semantic-tag.ts"];
-  }
-  subgraph "cluster_EndMarker" {
-    label = "EndMarker";
-    "end-marker.ts:EndMarker" [label="<disconnectedCallback> disconnectedCallback", URL="end-marker.ts", tooltip="end-marker.ts"];
-  }
-  subgraph "cluster_StartMarker" {
-    label = "StartMarker";
-    "start-marker.ts:StartMarker" [label="<connectedCallback> connectedCallback | <disconnectedCallback> disconnectedCallback | <validate> validate | <pushSpillovers> pushSpillovers", URL="start-marker.ts", tooltip="start-marker.ts"];
+    "semantic-tag.backup.ts:SemanticTag" [label="<setData> setData | <connectedCallback> connectedCallback | <enforceStructure> enforceStructure | <resurrectEndMarker> resurrectEndMarker | <resurrectStartMarker> resurrectStartMarker | <reclassBlockTag> reclassBlockTag | <createEndMarker> createEndMarker | <createStartMarker> createStartMarker | <startMarkerContent> startMarkerContent", URL="semantic-tag.backup.ts", tooltip="semantic-tag.backup.ts"];
   }
   subgraph "cluster_SemanticRules" {
     label = "SemanticRules";
-    "semantic-rules.ts:SemanticRules" [label="<splitMarker> splitMarker | <getClass> getClass | <getClosingMarker> getClosingMarker | <getMarkerFromClass> getMarkerFromClass | <astTokens> astTokens | <getMarkerFromAST> getMarkerFromAST", URL="semantic-rules.ts", tooltip="semantic-rules.ts"];
+    "semantic-rules.ts:SemanticRules" [label="<getClass> getClass | <getMarkerFromClass> getMarkerFromClass | <getClosingMarker> getClosingMarker | <validate> validate | <isBlock> isBlock | <astTokens> astTokens | <getMarkerFromAST> getMarkerFromAST", URL="semantic-rules.ts", tooltip="semantic-rules.ts"];
+  }
+  subgraph "cluster_EndMarker" {
+    label = "EndMarker";
+    "end-marker.ts:EndMarker" [label="<connectedCallback> connectedCallback | <disconnectedCallback> disconnectedCallback", URL="end-marker.ts", tooltip="end-marker.ts"];
+  }
+  subgraph "cluster_StartMarker" {
+    label = "StartMarker";
+    "start-marker.backup.ts:StartMarker" [label="<connectedCallback> connectedCallback | <disconnectedCallback> disconnectedCallback | <contentChange> contentChange | <defineLeft> defineLeft | <pullFromLeft> pullFromLeft | <defineRight> defineRight | <pullFromRight> pullFromRight | <pushToLeft> pushToLeft | <pushToRight> pushToRight | <reclass> reclass | <checkWings> checkWings", URL="start-marker.backup.ts", tooltip="start-marker.backup.ts"];
   }
   subgraph cluster_browser {
     label = "Browser APIs";
-    "Browser" [label="<fetch> fetch | <window> window | <customElements> customElements | <MutationObserver> MutationObserver | <document> document"];
+    "Browser" [label="<fetch> fetch | <window> window | <document> document | <customElements> customElements | <MutationObserver> MutationObserver"];
   }
   "editor-orchestrator.ts:EditorOrchestrator":"handleInput" -> "Browser":"window";
-  "editor-orchestrator.ts:EditorOrchestrator":"handleInput" -> "semantic-tag.ts:SemanticTag":"fill";
   "editor-orchestrator.ts:EditorOrchestrator":"loadSample" -> "Browser":"fetch";
   "editor-orchestrator.ts:EditorOrchestrator":"loadSample" -> "markdown-parser.ts:MarkdownParser":"parse";
+  "end-marker.ts:EndMarker":"connectedCallback" -> "semantic-tag.backup.ts:SemanticTag":"enforceStructure";
   "end-marker.ts:EndMarker":"disconnectedCallback" -> "Browser":"customElements";
-  "end-marker.ts:EndMarker":"disconnectedCallback" -> "semantic-tag.ts:SemanticTag":"resurrectionEndMarker";
+  "end-marker.ts:EndMarker":"disconnectedCallback" -> "semantic-tag.backup.ts:SemanticTag":"enforceStructure";
   "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "Browser":"document";
   "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "semantic-rules.ts:SemanticRules":"getMarkerFromAST";
-  "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "semantic-tag.ts:SemanticTag":"fill";
   "markdown-parser.ts:MarkdownParser":"parse" -> "Browser":"document";
   "markdown-parser.ts:MarkdownParser":"parse" -> "semantic-rules.ts:SemanticRules":"astTokens";
-  "semantic-tag.ts:SemanticTag":"createEndMarker" -> "Browser":"document";
-  "semantic-tag.ts:SemanticTag":"createEndMarker" -> "semantic-rules.ts:SemanticRules":"getClosingMarker";
-  "semantic-tag.ts:SemanticTag":"createEndMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
-  "semantic-tag.ts:SemanticTag":"createStartMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
-  "semantic-tag.ts:SemanticTag":"fill" -> "semantic-rules.ts:SemanticRules":"getClass";
-  "semantic-tag.ts:SemanticTag":"grabRight" -> "Browser":"customElements";
-  "semantic-tag.ts:SemanticTag":"resurrectionEndMarker" -> "semantic-rules.ts:SemanticRules":"getClosingMarker";
-  "semantic-tag.ts:SemanticTag":"resurrectionEndMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
-  "start-marker.ts:StartMarker":"connectedCallback" -> "Browser":"MutationObserver";
-  "start-marker.ts:StartMarker":"disconnectedCallback" -> "semantic-tag.ts:SemanticTag":"deletionEndMarker";
-  "start-marker.ts:StartMarker":"pushSpillovers" -> "Browser":"customElements";
-  "start-marker.ts:StartMarker":"pushSpillovers" -> "Browser":"document";
-  "start-marker.ts:StartMarker":"validate" -> "semantic-rules.ts:SemanticRules":"getClass";
-  "start-marker.ts:StartMarker":"validate" -> "semantic-rules.ts:SemanticRules":"getClosingMarker";
-  "start-marker.ts:StartMarker":"validate" -> "semantic-rules.ts:SemanticRules":"splitMarker";
+  "semantic-tag.backup.ts:SemanticTag":"createEndMarker" -> "Browser":"document";
+  "semantic-tag.backup.ts:SemanticTag":"createEndMarker" -> "semantic-rules.ts:SemanticRules":"getClosingMarker";
+  "semantic-tag.backup.ts:SemanticTag":"createEndMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
+  "semantic-tag.backup.ts:SemanticTag":"createStartMarker" -> "Browser":"customElements";
+  "semantic-tag.backup.ts:SemanticTag":"createStartMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
+  "semantic-tag.backup.ts:SemanticTag":"reclassBlockTag" -> "semantic-rules.ts:SemanticRules":"getClass";
+  "semantic-tag.backup.ts:SemanticTag":"setData" -> "semantic-rules.ts:SemanticRules":"getClass";
+  "semantic-tag.ts:SemanticTag":"startMarkerContent" -> "Browser":"customElements";
+  "semantic-tag.ts:SemanticTag":"startMarkerContent" -> "start-marker.ts:StartMarker":"reclass";
+  "start-marker.backup.ts:StartMarker":"connectedCallback" -> "Browser":"MutationObserver";
+  "start-marker.backup.ts:StartMarker":"connectedCallback" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
+  "start-marker.backup.ts:StartMarker":"connectedCallback" -> "semantic-tag.backup.ts:SemanticTag":"enforceStructure";
+  "start-marker.backup.ts:StartMarker":"contentChange" -> "semantic-rules.ts:SemanticRules":"getClass";
+  "start-marker.backup.ts:StartMarker":"contentChange" -> "semantic-rules.ts:SemanticRules":"validate";
+  "start-marker.backup.ts:StartMarker":"defineLeft" -> "start-marker.ts:StartMarker":"pullFromLeft";
+  "start-marker.backup.ts:StartMarker":"defineRight" -> "start-marker.ts:StartMarker":"pullFromRight";
+  "start-marker.backup.ts:StartMarker":"disconnectedCallback" -> "semantic-tag.backup.ts:SemanticTag":"enforceStructure";
+  "start-marker.backup.ts:StartMarker":"pullFromLeft" -> "semantic-rules.ts:SemanticRules":"isBlock";
+  "start-marker.backup.ts:StartMarker":"pullFromRight" -> "semantic-rules.ts:SemanticRules":"isBlock";
+  "start-marker.backup.ts:StartMarker":"pushToLeft" -> "Browser":"document";
+  "start-marker.backup.ts:StartMarker":"pushToRight" -> "Browser":"customElements";
+  "start-marker.backup.ts:StartMarker":"pushToRight" -> "Browser":"document";
+  "start-marker.ts:StartMarker":"checkWings" -> "semantic-rules.ts:SemanticRules":"getClass";
+  "start-marker.ts:StartMarker":"connectedCallback" -> "Browser":"customElements";
+  "start-marker.ts:StartMarker":"connectedCallback" -> "Browser":"document";
+  "start-marker.ts:StartMarker":"pullFromLeft" -> "semantic-rules.ts:SemanticRules":"isBlock";
+  "start-marker.ts:StartMarker":"pullFromRight" -> "semantic-rules.ts:SemanticRules":"isBlock";
+  "start-marker.ts:StartMarker":"reclass" -> "semantic-rules.ts:SemanticRules":"getClass";
 }

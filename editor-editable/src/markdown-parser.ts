@@ -54,6 +54,8 @@ export class MarkdownParser implements MarkdownParserFace {
                 : [];
 
         const marker = SemanticRules.getMarkerFromAST(token);
-        return new SemanticTag().fill(marker, children);
+        const tag = new SemanticTag();
+        tag.data = { marker, content: children };
+        return tag;
     }
 }
