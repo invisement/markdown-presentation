@@ -9,11 +9,11 @@ digraph logic {
   }
   subgraph "cluster_MarkdownParser" {
     label = "MarkdownParser";
-    "markdown-parser.ts:MarkdownParser" [label="<parse> parse | <buildNodeBottomUp> buildNodeBottomUp", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
+    "markdown-parser.ts:MarkdownParser" [label="<parse> parse | <parseToken> parseToken", URL="markdown-parser.ts", tooltip="markdown-parser.ts"];
   }
   subgraph "cluster_SemanticTag" {
     label = "SemanticTag";
-    "semantic-tag.backup.ts:SemanticTag" [label="<setData> setData | <connectedCallback> connectedCallback | <enforceStructure> enforceStructure | <resurrectEndMarker> resurrectEndMarker | <resurrectStartMarker> resurrectStartMarker | <reclassBlockTag> reclassBlockTag | <createEndMarker> createEndMarker | <createStartMarker> createStartMarker | <startMarkerContent> startMarkerContent", URL="semantic-tag.backup.ts", tooltip="semantic-tag.backup.ts"];
+    "semantic-tag.backup.ts:SemanticTag" [label="<setData> setData | <connectedCallback> connectedCallback | <enforceStructure> enforceStructure | <resurrectEndMarker> resurrectEndMarker | <resurrectStartMarker> resurrectStartMarker | <reclassBlockTag> reclassBlockTag | <createEndMarker> createEndMarker | <createStartMarker> createStartMarker | <dataFromParser> dataFromParser | <startMarkerContent> startMarkerContent", URL="semantic-tag.backup.ts", tooltip="semantic-tag.backup.ts"];
   }
   subgraph "cluster_SemanticRules" {
     label = "SemanticRules";
@@ -21,7 +21,7 @@ digraph logic {
   }
   subgraph "cluster_EndMarker" {
     label = "EndMarker";
-    "end-marker.ts:EndMarker" [label="<connectedCallback> connectedCallback | <disconnectedCallback> disconnectedCallback", URL="end-marker.ts", tooltip="end-marker.ts"];
+    "end-marker.ts:EndMarker" [label="<disconnectedCallback> disconnectedCallback", URL="end-marker.ts", tooltip="end-marker.ts"];
   }
   subgraph "cluster_StartMarker" {
     label = "StartMarker";
@@ -34,13 +34,11 @@ digraph logic {
   "editor-orchestrator.ts:EditorOrchestrator":"handleInput" -> "Browser":"window";
   "editor-orchestrator.ts:EditorOrchestrator":"loadSample" -> "Browser":"fetch";
   "editor-orchestrator.ts:EditorOrchestrator":"loadSample" -> "markdown-parser.ts:MarkdownParser":"parse";
-  "end-marker.ts:EndMarker":"connectedCallback" -> "semantic-tag.backup.ts:SemanticTag":"enforceStructure";
   "end-marker.ts:EndMarker":"disconnectedCallback" -> "Browser":"customElements";
-  "end-marker.ts:EndMarker":"disconnectedCallback" -> "semantic-tag.backup.ts:SemanticTag":"enforceStructure";
-  "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "Browser":"document";
-  "markdown-parser.ts:MarkdownParser":"buildNodeBottomUp" -> "semantic-rules.ts:SemanticRules":"getMarkerFromAST";
   "markdown-parser.ts:MarkdownParser":"parse" -> "Browser":"document";
   "markdown-parser.ts:MarkdownParser":"parse" -> "semantic-rules.ts:SemanticRules":"astTokens";
+  "markdown-parser.ts:MarkdownParser":"parseToken" -> "Browser":"document";
+  "markdown-parser.ts:MarkdownParser":"parseToken" -> "semantic-rules.ts:SemanticRules":"getMarkerFromAST";
   "semantic-tag.backup.ts:SemanticTag":"createEndMarker" -> "Browser":"document";
   "semantic-tag.backup.ts:SemanticTag":"createEndMarker" -> "semantic-rules.ts:SemanticRules":"getClosingMarker";
   "semantic-tag.backup.ts:SemanticTag":"createEndMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
@@ -48,6 +46,9 @@ digraph logic {
   "semantic-tag.backup.ts:SemanticTag":"createStartMarker" -> "semantic-rules.ts:SemanticRules":"getMarkerFromClass";
   "semantic-tag.backup.ts:SemanticTag":"reclassBlockTag" -> "semantic-rules.ts:SemanticRules":"getClass";
   "semantic-tag.backup.ts:SemanticTag":"setData" -> "semantic-rules.ts:SemanticRules":"getClass";
+  "semantic-tag.ts:SemanticTag":"dataFromParser" -> "Browser":"document";
+  "semantic-tag.ts:SemanticTag":"dataFromParser" -> "semantic-rules.ts:SemanticRules":"getClass";
+  "semantic-tag.ts:SemanticTag":"dataFromParser" -> "semantic-rules.ts:SemanticRules":"getClosingMarker";
   "semantic-tag.ts:SemanticTag":"startMarkerContent" -> "Browser":"customElements";
   "semantic-tag.ts:SemanticTag":"startMarkerContent" -> "start-marker.ts:StartMarker":"reclass";
   "start-marker.backup.ts:StartMarker":"connectedCallback" -> "Browser":"MutationObserver";

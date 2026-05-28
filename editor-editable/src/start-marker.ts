@@ -8,10 +8,20 @@ export class StartMarker extends HTMLElement {
     #middle: string = "";
     #right: string = "";
 
-    constructor(marker: string = "") {
+    constructor() {
         super();
+    }
+
+    initFromParser(marker: string, parentId: string) {
         this.classList.add('marker', 'start');
         this.textContent = marker;
+        this.setAttribute('parent-id', parentId);
+    }
+
+    initFromInput(content: string, parentId: string) {
+        this.classList.add('marker', 'start');
+        this.textContent = content;
+        this.setAttribute('parent-id', parentId);
     }
 
     reclass(content: string): string {
@@ -34,7 +44,26 @@ export class StartMarker extends HTMLElement {
         const targetClass = SemanticRules.getClass(this.#middle);
         const leftStatus = SemanticRules.checkLeftStatus(this.#left, targetClass, (cls) => this.pullFromLeft(cls));
         const rightStatus = SemanticRules.checkRightStatus(this.#right, targetClass, (cls) => this.pullFromRight(cls));
+
+        this.#left = leftStatus.leftBorder;
+        this.#right = rightStatus.rightBorder;
+
+        this.pushToLeft(leftStatus.spillOver, targetClass);
+        this.pushToRight(rightStatus.spillOver, targetClass);
+
         return leftStatus.status === "valid" && rightStatus.status === "valid";
+    }
+
+    private pushToLeft(spillOver: string, className: string) {
+        if (!spillOver) return;
+        const prev = SemanticRules.isInline(className) ? this.#parent.previousSibling : this.previousSibling;
+        (prev as Text).appendData(spillOver);
+    }
+
+    private pushToRight(spillOver: string, className: string) {
+        if (!spillOver) return;
+        const next = SemanticRules.isInline(className) ? this.#parent.nextSibling : this.nextSibling;
+        (next as Text).insertData(0, spillOver);
     }
 
     private pullFromLeft(className: string): string {

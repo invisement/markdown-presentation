@@ -21,16 +21,21 @@ that is globally available to pick. why
 ## Feature story:
 - user types a marker "*"
 - semantic-tag is created
-- end-marker is created and connected.
+- end-marker is created and connected as last child.
 - start-marker is created (with *) that causes reclass:
     - check my wings (left, middle, right)
+        - if needed grab new left and right
+        - if needed push spillovers to left or right.
     - is it valid?
     - return className or invalid
 
 ALl three just need to have minimal to address the above story and feature architecture. 
 
-## Task for LLM
-We do not need to implement check-wings method(s) but need to implement the rest (main logic). 
+## Frozen code files:
+- markdown-parser.ts
+    - this is ineed a good example for our code sample and how we approach coding as an example for best practices.
 
-Show the code for these three classes afresh here (in chat) with minimal supporting logic.
+
+## Task for LLM
+Let's implement the feature story (only to support this story so far).
 

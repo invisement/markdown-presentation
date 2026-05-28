@@ -1,5 +1,6 @@
-import { MarkdownParserFace } from './markdown-parser.ts';
+import { MarkdownParserFace } from './types.ts';
 import { SemanticTag } from './semantic-tag.ts';
+import './semantic-tag.ts';
 import { SemanticRules } from './semantic-rules.ts';
 
 /**
@@ -47,7 +48,8 @@ export class EditorOrchestrator implements EditorOrchestratorFace {
         const left = text.substring(0, offset - 1);
         const right = text.substring(offset);
 
-        const semanticTag = new SemanticTag().fill(e.data);
+        const semanticTag = document.createElement('semantic-tag') as SemanticTag;
+        semanticTag.dataFromKeyboard = e.data;
         console.debug("empty semantic tag created", semanticTag);
 
         // replace current parent with left, semanticTag, right

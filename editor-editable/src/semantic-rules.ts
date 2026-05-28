@@ -76,13 +76,15 @@ export class SemanticRules {
     static getMarkerFromAST(token: Token): string {
         const tagName = token.type;
         const ZWS = SemanticRules.ZWS;
-        if (tagName === 'heading') return ZWS + '#'.repeat(token.depth || 1);
-        if (tagName === 'list_item') return ZWS + '-';
+        if (tagName === 'heading') return ZWS + '#'.repeat(token.depth || 1) + " ";
+        if (tagName === 'list_item') return ZWS + '- ';
         if (tagName === 'strong') return ZWS + '**';
         if (tagName === 'em') return ZWS + '*';
         if (tagName === 'codespan') return ZWS + '`';
         if (tagName === 'code') return ZWS + '```\n';
         if (tagName === 'html') return ZWS + token.text;
+        if (tagName === 'paragraph') return ZWS;
+        if (tagName === 'text') return '';
         return '';
     }
 
@@ -108,23 +110,24 @@ export class SemanticRules {
      */
     static getClass(marker: string): string {
         const ZWS = SemanticRules.ZWS;
+        const normalized = marker.trimEnd();
 
         // Explicit mapping for empty/paragraph markers
-        if (marker === ZWS || marker === '') return 'p';
+        if (normalized === ZWS || normalized === '') return 'p';
 
-        if (marker === ZWS + '**') return 'b';
-        if (marker === ZWS + '*') return 'i';
-        if (marker === ZWS + '`') return 'code';
-        if (marker === ZWS + '-') return 'li';
-        if (marker === ZWS + '>') return 'blockquote';
-        if (marker.startsWith(ZWS + '```')) return 'pre';
-        if (marker.startsWith(ZWS + '<')) return 'html-tag';
-
-        // Explicit heading match
-        if (marker.startsWith(ZWS + '#')) {
-            const level = marker.slice(1).length; // Skip ZWS to count '#'
-            if (level >= 1 && level <= 6) return 'h' + level;
-        }
+        if (normalized === ZWS + '**') return 'b';
+        if (normalized === ZWS + '*') return 'i';
+        if (normalized === ZWS + '`') return 'code';
+        if (normalized === ZWS + '-') return 'li';
+        if (normalized === ZWS + '>') return 'blockquote';
+        if (normalized.startsWith(ZWS + '```')) return 'pre';
+        if (normalized.startsWith(ZWS + '<')) return 'html-tag';
+        if (normalized === ZWS + '#') return 'h1';
+        if (normalized === ZWS + '##') return 'h2';
+        if (normalized === ZWS + '###') return 'h3';
+        if (normalized === ZWS + '####') return 'h4';
+        if (normalized === ZWS + '#####') return 'h5';
+        if (normalized === ZWS + '######') return 'h6';
 
         return 'invalid'; // Zero default fallback!
     }

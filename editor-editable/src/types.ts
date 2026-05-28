@@ -15,7 +15,7 @@ export type ParserToken = Token & {
  * Contract for Markdown grammar and parsing.
  */
 export interface MarkdownParserFace {
-    parse(markdown: string): Node[];
+    parse(markdown: string): DocumentFragment;
 }
 
 
@@ -37,7 +37,7 @@ export interface SemanticTagFace extends HTMLElement {
     startMarkerContent: string;
 
     /** Explicit entry point for static parser loads */
-    dataFromParser: { marker: string; content: string | Node[] };
+    dataFromParser: { marker: string; content: DocumentFragment };
 
     /** Natively validates boundary carets and heals missing end-markers */
     enforceStructure(): void;
@@ -49,6 +49,9 @@ export interface SemanticTagFace extends HTMLElement {
  * mutations, evaluates style transitions, and pushes/pulls sibling context.
  */
 export interface StartMarkerFace extends HTMLElement {
+    initFromParser(marker: string, parentId: string): void;
+    initFromInput(content: string, parentId: string): void;
+
     /** 
      * Splits text content, runs boundary validation, and returns the newly 
      * resolved CSS class name (or "invalid" if boundaries are breached).
@@ -64,7 +67,8 @@ export interface StartMarkerFace extends HTMLElement {
  * A passive caretaker boundary element indicating the closing format syntax.
  */
 export interface EndMarkerFace extends HTMLElement {
-    // Passive element, inherits standard HTMLElement
+    initFromParser(markerText: string, parentId: string): void;
+    initFromResurrection(markerText: string, parentId: string): void;
 }
 
 /**

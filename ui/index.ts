@@ -1,6 +1,48 @@
-import { MarkdownEditor } from '@invisement/editor-easymde';
 import { marked } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
+
+export interface EditorOptions {
+    onChange: (value: string) => void;
+    onSave: () => void;
+}
+
+export class MarkdownEditor {
+    private textarea: HTMLTextAreaElement | null = null;
+    private inputListener: (() => void) | null = null;
+    private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+
+    init(element: HTMLElement, options: EditorOptions) {
+        this.textarea = element as HTMLTextAreaElement;
+        this.textarea.style.display = 'block';
+
+        this.inputListener = () => {
+            options.onChange(this.textarea!.value);
+        };
+        this.textarea.addEventListener('input', this.inputListener);
+
+        this.keydownListener = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                options.onSave();
+            }
+        };
+        this.textarea.addEventListener('keydown', this.keydownListener);
+    }
+
+    getValue(): string {
+        return this.textarea ? this.textarea.value : "";
+    }
+
+    setValue(value: string) {
+        if (this.textarea) {
+            this.textarea.value = value;
+        }
+    }
+
+    refresh() {
+        // Native textarea does not need refresh, but we keep the method for compatibility
+    }
+}
 
 const renderer = new marked.Renderer();
 const originalImage = renderer.image.bind(renderer);

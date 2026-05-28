@@ -190,8 +190,8 @@ semantic-tag.pre {
 
 .marker.end {
 	display: inline-block;
-	width: 0;
-	font-size: 0;
+	/* width: 0;
+	font-size: 0; */
 }
 
 .h1 .end,
