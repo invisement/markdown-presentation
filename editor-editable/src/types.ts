@@ -5,6 +5,19 @@
  */
 
 import { Token } from 'marked';
+export type ParserToken = Token & {
+    tokens?: ParserToken[];
+    text?: string;
+    items?: ParserToken[];
+};
+
+/**
+ * Contract for Markdown grammar and parsing.
+ */
+export interface MarkdownParserFace {
+    parse(markdown: string): Node[];
+}
+
 
 /**
  * 1. Semantic Tag Contract (The Parent Element)
@@ -22,6 +35,9 @@ export interface SemanticTagFace extends HTMLElement {
 
     /** Setter to build the children wings and resolve parent styles */
     startMarkerContent: string;
+
+    /** Explicit entry point for static parser loads */
+    dataFromParser: { marker: string; content: string | Node[] };
 
     /** Natively validates boundary carets and heals missing end-markers */
     enforceStructure(): void;

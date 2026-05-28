@@ -9,16 +9,48 @@ export class SemanticTag extends HTMLElement {
     endMarker!: HTMLElement;
 
     constructor() {
-        super();
-        this.id = `semantic-tag-${SemanticTag.nextId++}`;
+        super(); // Pure, zero-attribute constructor (fully HTML spec-compliant!)
+    }
 
-        const endMarker = document.createElement("end-marker");
+    set dataFromParser(val: { marker: string; content: DocumentFragment }) {
+        // Defer unique ID generation safely to the setter
+        if (!this.id) {
+            this.id = `semantic-tag-${SemanticTag.nextId++}`;
+        }
+
+        const { marker, content } = val;
+        this.className = SemanticRules.getClass(marker);
+
+        // 1. Create Start Marker
+        const startMarker = new StartMarker(marker);
+        startMarker.setAttribute('parent-id', this.id);
+
+        // 2. Create End Marker
+        const endPair = SemanticRules.getClosingMarker(marker);
+        const endMarker = document.createElement('end-marker');
+        endMarker.className = 'marker end';
+        endMarker.setAttribute('contenteditable', 'false');
+        endMarker.textContent = endPair;
         endMarker.setAttribute('parent-id', this.id);
+
+        // 3. Append them sequentially
+        this.append(startMarker);
+        const nodes = Array.isArray(content) ? content : [content];
+        for (const node of nodes) {
+            this.append(typeof node === 'string' ? document.createTextNode(node) : node);
+        }
         this.append(endMarker);
+
+        // 4. Cache wing references
+        this.startMarker = startMarker;
         this.endMarker = endMarker;
     }
 
     set startMarkerContent(content: string) {
+        if (!this.id) {
+            this.id = `semantic-tag-${SemanticTag.nextId++}`;
+        }
+
         const marker = new StartMarker(content);
         marker.setAttribute('parent-id', this.id);
         this.prepend(marker);

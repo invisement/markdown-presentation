@@ -100,12 +100,13 @@ We are currently evaluating three design paths for block creation on Enter:
   - **Virtual Sentinel evaluation**: Solved initial load crashes at the document start using pure, DOM-independent virtual newlines (`"\n"`).
   - **Push and Pull helpers**: Built symmetrical `pullFromLeft`, `pullFromRight`, `pushToLeft`, and `pushToRight` methods inside `StartMarker` to isolate DOM text node extraction and injection.
 
-### [X] Iteration 16: Verification and Integrity Check
-- **Goal:** Conduct a row-by-row integrity trace of start-marker states, resolve structural class demotion bugs, and organize regex engines inside `semantic-rules.ts` cleanly.
-- **Completed Features:**
-  - **Class-Aware Splitting:** Refactored the text-splitting engine to choose a specific regex pattern (`pre`, `html-tag`, or standard markers) based on active tag type, successfully isolating HTML tag attributes and code fences.
-  - **Reorganized Dynamic Registry:** Moved all regex engines to self-documenting static getters, dynamically consuming `markers` and `blanks` properties for robust control without hardcoded characters.
-  - **Dynamic Invalidation:** Resolved class demotions by executing boundary validations on every change cycle, fallback-invalidating active classes if boundary checks evaluate to `'invalid'`.
+### [x] Iteration 16: Verification and Integrity Check
+- **Goal:** Conduct a row-by-row integrity trace of start-marker states after the sample markdown is loaded into editor.
+- **Completed Features**:
+  - Unified the entire parser to return and leverage native `DocumentFragment` elements.
+  - Implemented flat list item container flattening directly via recursive `items` mapping.
+  - Resolved nested `"text"` container formatting conflicts. The parser recursively parses inline children and flattens them flatly into lists and paragraphs instead of generating redundant, broken nested `<semantic-tag class="p">` paragraph wraps.
+  - Eliminated plain text character splitting. Utilizing native `.append(text!)` guarantees that the browser natively wraps raw text block elements into standard cohesive text nodes.
 
 ### [ ] Iteration 17: Verification and Sibling Symmetrical Healing Exercise
 - **Goal:** Conduct the verification exercise again (comprehensively listing all start-markers inside the sample document, checking their boundary validity, and verifying class mappings). Find any active bugs or mismatches, resolve them, and continue unifying autonomous boundary construction.

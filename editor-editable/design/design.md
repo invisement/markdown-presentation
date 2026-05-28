@@ -224,7 +224,7 @@ If a class is marked as **FROZEN**, no code changes may be made to it without ex
 - **Modification Rule:** Strictly frozen. Never modify this component without explicit consultation and confirmation from the project lead.
 
 ### 2. `MarkdownParser` (`src/markdown-parser.ts`)
-- **Status:** 🟡 **ACTIVE** (Refactoring for Iteration 7)
+- **Status:** 🔴 **FROZEN** (Completed Iteration 16)
 - **Responsibility:** Translates raw Markdown into `SemanticTag` instantiations.
 - **Why it exists:** The editor needs a reliable, one-way translator to convert flat strings into our surgical, nested component tree.
 - **Parser Library Decision:** We utilize **Marked** (`marked.lexer`) to generate a lightweight Abstract Syntax Tree (AST) from raw markdown. We evaluated several alternatives:
@@ -255,6 +255,10 @@ If a class is marked as **FROZEN**, no code changes may be made to it without ex
   - File reading/writing locally, running `git status`, and `git pull` are **fully pre-approved** and do NOT require permission.
 - **Pair Programming & Algorithms**: We care deeply about algorithms (how things are done under the hood). We discuss approaches thoroughly (using chat, diagrams, or iterative edits to the implementation plan) *before* writing code.
 - **Pair Programming & Focus Protocol**: We like focus work. When in active pair programming mode, both participants must proceed with extreme focus and deliberate pacing. We limit edits to a tiny scope (often 1 or 2 files, and only a few targeted lines of code change at a time). We strictly address only the specific task at hand. There must be NO unsolicited refactoring, code formatting, style restructuring, or removal/alteration of existing code comments or documentation. We focus entirely on developing the barebones, happy-path algorithm, postponing all secondary polishing and refactoring until explicitly agreed upon.
+- **Pacing & Zero-Code Verification Rule**:
+  - The AI **MUST NEVER** write, edit, or modify any project code files, nor execute any compile/build commands, during the initial analysis, diagnostic, or diagnostic-planning phases.
+  - The AI's sole objective during a verification or diagnostic turn is to output a clean table/trace of properties and identify the **single first bug** and explain **why it happens** conceptually.
+  - Under no circumstances should the AI jump ahead, propose code changes, or attempt to fix anything until the user has explicitly verified the diagnostic table and given explicit permission to begin coding.
 
 ## Development Philosophy: Always Happy Path
 
