@@ -1,4 +1,4 @@
-
+- main files for LLM to review: Reame.md and design.md and maybe spec.md.
 
 - I think all our semantic-tags need to have a unique id
 that is globally available to pick. why
@@ -21,7 +21,7 @@ that is globally available to pick. why
 ## Feature story:
 - user types a marker "*"
 - semantic-tag is created
-- end-marker is created and connected as last child.
+- end-marker is created and connected ~as last child~ in right place like block markers: end of line.
 - start-marker is created (with *) that causes reclass:
     - check my wings (left, middle, right)
         - if needed grab new left and right
@@ -37,5 +37,5 @@ ALl three just need to have minimal to address the above story and feature archi
 
 
 ## Task for LLM
-Let's implement the feature story (only to support this story so far).
+Our immediate work would be focusing on step 3 of your feature story flow: we want block markers, extend end-marker to end of line, and with limited intereference or code change, make it automatically work. wr
 

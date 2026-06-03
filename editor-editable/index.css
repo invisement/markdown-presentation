@@ -5,26 +5,18 @@
 }
 
 body {
-	font-family: Georgia, serif;
-	background: #1a1a2e;
-	color: #e0e0e0;
+	font-family: system-ui, ui-sans-serif, sans-serif;
 	display: flex;
 	justify-content: center;
-	padding: 40px 20px;
 }
 
 #editor {
 	width: 100%;
-	max-width: 720px;
-	min-height: 400px;
-	padding: 32px;
-	background: #16213e;
-	border: 1px solid #0f3460;
-	border-radius: 8px;
-	outline: none;
-	font-size: 16px;
-	line-height: 1.7;
-	caret-color: #e94560;
+	max-width: 60em;
+	padding: 2em;
+	line-height: 1.5;
+	caret-color: red;
+
 }
 
 #editor>semantic-tag {
@@ -41,10 +33,14 @@ semantic-tag.h1,
 semantic-tag.h2,
 semantic-tag.h3,
 semantic-tag.li,
+semantic-tag.ul,
+semantic-tag.html-tag,
+semantic-tag.ol,
 semantic-tag.pre {
 	display: block;
 	margin: 0.3em 0;
 }
+
 
 /* Block elements (Classes) */
 #editor .h1 {
@@ -176,20 +172,21 @@ semantic-tag.pre {
 }
 
 /* Markdown control chars — muted */
-.marker.start {
+.marker.start,
+.marker.end {
 	color: #555;
 	font-family: 'Fira Code', monospace;
-	font-size: 0.8em;
+	font-size: 0.5em;
 	font-weight: normal;
 	font-style: normal;
-	background-color: green;
+	background-color: rgba(100, 100, 100, .1);
 	padding: 1px 4px;
 	border-radius: 3px;
 	margin: 0 1px;
 }
 
 .marker.end {
-	display: inline-block;
+	/* display: inline-block; */
 	/* width: 0;
 	font-size: 0; */
 }

@@ -37,17 +37,17 @@ export class SemanticTag extends HTMLElement {
         this.id = `semantic-tag-${SemanticTag.nextId++}`;
 
         const startMarker = new StartMarker();
-        startMarker.initFromParser(SemanticRules.ZWS + marker, this.id);
+        startMarker.initFromParser(marker, this.id);
 
         const endMarker = new EndMarker();
-        const endPair = SemanticRules.getClosingMarker(SemanticRules.ZWS + marker) || marker;
+        const endPair = SemanticRules.getClosingMarker(marker);
         endMarker.initFromParser(endPair, this.id);
 
         this.append(startMarker, endMarker);
 
         this.startMarker = startMarker;
         this.endMarker = endMarker;
-        this.className = startMarker.reclass(SemanticRules.ZWS + marker);
+        this.className = startMarker.reclass(marker);
     }
 
     set startMarkerContent(content: string) {

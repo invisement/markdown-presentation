@@ -18,7 +18,6 @@ export interface BorderGrabber {
 
 
 export class SemanticRules {
-    static readonly ZWS = '\u200B';
     static readonly NBSP = '\u00a0';
 
     static readonly blockClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'p', 'ul', 'ol', 'html-tag', 'blockquote'];
@@ -38,15 +37,15 @@ export class SemanticRules {
     }
 
     private static get HTML_SPLIT_PATTERN(): RegExp {
-        return /^([\s\S]*?)(\u200B<[^>]*>)([\s\S]*)$/;
+        return /^([\s\S]*?)(<[^>]*>)([\s\S]*)$/;
     }
 
     private static get FENCE_SPLIT_PATTERN(): RegExp {
-        return /^([\s\S]*?)(\u200B`{3,}[a-zA-Z0-9]*)([\s\S]*)$/;
+        return /^([\s\S]*?)(`{3,}[a-zA-Z0-9]*)([\s\S]*)$/;
     }
 
     private static get MARKER_SPLIT_PATTERN(): RegExp {
-        return new RegExp(`^([\\s\\S]*?)(\\u200B[${SemanticRules.markerString}]*)([\\s\\S]*)$`);
+        return new RegExp(`^([\\s\\S]*?)([${SemanticRules.markerString}]*)([\\s\\S]*)$`);
     }
 
 
@@ -71,63 +70,60 @@ export class SemanticRules {
     }
 
     /**
-     * 1. AST Parser -> Start-Marker (ZWS-integrated)
+     * 1. AST Parser -> Start-Marker
      */
     static getMarkerFromAST(token: Token): string {
         const tagName = token.type;
-        const ZWS = SemanticRules.ZWS;
-        if (tagName === 'heading') return ZWS + '#'.repeat(token.depth || 1) + " ";
-        if (tagName === 'list_item') return ZWS + '- ';
-        if (tagName === 'strong') return ZWS + '**';
-        if (tagName === 'em') return ZWS + '*';
-        if (tagName === 'codespan') return ZWS + '`';
-        if (tagName === 'code') return ZWS + '```\n';
-        if (tagName === 'html') return ZWS + token.text;
-        if (tagName === 'paragraph') return ZWS;
+        if (tagName === 'heading') return '#'.repeat(token.depth || 1) + " ";
+        if (tagName === 'list_item') return '- ';
+        if (tagName === 'strong') return '**';
+        if (tagName === 'em') return '*';
+        if (tagName === 'codespan') return '`';
+        if (tagName === 'code') return '```\n';
+        if (tagName === 'html') return token.text;
+        if (tagName === 'paragraph') return '';
         if (tagName === 'text') return '';
         return '';
     }
 
     /**
-     * 2. CSS Class Name -> Start-Marker (ZWS-integrated)
+     * 2. CSS Class Name -> Start-Marker
      */
     static getMarkerFromClass(cls: string): string {
-        const ZWS = SemanticRules.ZWS;
-        if (cls === 'b') return ZWS + '**';
-        if (cls === 'i') return ZWS + '*';
-        if (cls === 'code') return ZWS + '`';
-        if (cls === 'li') return ZWS + '-';
-        if (cls === 'pre') return ZWS + '```\n';
+        if (cls === 'b') return '**';
+        if (cls === 'i') return '*';
+        if (cls === 'code') return '`';
+        if (cls === 'li') return '-';
+        if (cls === 'pre') return '```\n';
         if (cls.startsWith('h')) {
             const level = parseInt(cls.slice(1)) || 1;
-            return ZWS + '#'.repeat(level);
+            return '#'.repeat(level);
         }
         return '';
     }
 
     /**
-     * 3. Start-Marker -> CSS Class: Maps a ZWS-integrated start-marker to its CSS class name.
+     * 3. Start-Marker -> CSS Class: Maps a start-marker to its CSS class name.
      */
     static getClass(marker: string): string {
-        const ZWS = SemanticRules.ZWS;
         const normalized = marker.trimEnd();
 
         // Explicit mapping for empty/paragraph markers
-        if (normalized === ZWS || normalized === '') return 'p';
+        if (normalized === '') return 'p';
 
-        if (normalized === ZWS + '**') return 'b';
-        if (normalized === ZWS + '*') return 'i';
-        if (normalized === ZWS + '`') return 'code';
-        if (normalized === ZWS + '-') return 'li';
-        if (normalized === ZWS + '>') return 'blockquote';
-        if (normalized.startsWith(ZWS + '```')) return 'pre';
-        if (normalized.startsWith(ZWS + '<')) return 'html-tag';
-        if (normalized === ZWS + '#') return 'h1';
-        if (normalized === ZWS + '##') return 'h2';
-        if (normalized === ZWS + '###') return 'h3';
-        if (normalized === ZWS + '####') return 'h4';
-        if (normalized === ZWS + '#####') return 'h5';
-        if (normalized === ZWS + '######') return 'h6';
+        if (normalized === '**') return 'b';
+        if (normalized === '*') return 'i';
+        if (normalized === '`') return 'code';
+        if (normalized === '-') return 'li';
+        if (normalized === '>') return 'blockquote';
+        if (normalized.startsWith('```')) return 'pre';
+        if (normalized.startsWith('<')) return 'html-tag';
+        if (normalized === '#') return 'h1';
+        if (normalized === '##') return 'h2';
+        if (normalized === '###') return 'h3';
+        if (normalized === '####') return 'h4';
+        if (normalized === '#####') return 'h5';
+        if (normalized === '######') return 'h6';
 
         return 'invalid'; // Zero default fallback!
     }
@@ -188,16 +184,15 @@ export class SemanticRules {
     }
 
     /**
-     * 4. Start-Marker -> End-Marker: Maps a ZWS-integrated start-marker to its expected closing counterpart.
+     * 4. Start-Marker -> End-Marker: Maps a start-marker to its expected closing counterpart.
      */
     static getClosingMarker(marker: string): string {
-        const ZWS = SemanticRules.ZWS;
-        const selfPairs = [ZWS + '*', ZWS + '`', ZWS + "'", ZWS + '"', ZWS + '~'];
-        const matchingStarts = [ZWS + "{", ZWS + "[", ZWS + "(", ZWS + "<"];
+        const selfPairs = ['*', '`', "'", '"', '~'];
+        const matchingStarts = ["{", "[", "(", "<"];
         const matchingEnds = ["}", "]", ")", ">"];
 
         if (selfPairs.includes(marker)) {
-            return marker.slice(1);
+            return marker;
         }
 
         if (matchingStarts.includes(marker)) {
@@ -205,11 +200,11 @@ export class SemanticRules {
             if (i >= 0) return matchingEnds[i];
         }
 
-        if (marker.startsWith(ZWS + '``')) {
-            return marker.slice(1).match(/^`+/)?.[0] || '';
+        if (marker.startsWith('``')) {
+            return marker.match(/^`+/)?.[0] || '';
         }
 
-        if (marker.startsWith(ZWS + '<')) {
+        if (marker.startsWith('<')) {
             const match = marker.match(/<([a-z1-6]+)/i);
             if (match) return `</${match[1]}>`;
         }

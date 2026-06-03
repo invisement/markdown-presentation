@@ -108,11 +108,16 @@ We are currently evaluating three design paths for block creation on Enter:
   - Resolved nested `"text"` container formatting conflicts. The parser recursively parses inline children and flattens them flatly into lists and paragraphs instead of generating redundant, broken nested `<semantic-tag class="p">` paragraph wraps.
   - Eliminated plain text character splitting. Utilizing native `.append(text!)` guarantees that the browser natively wraps raw text block elements into standard cohesive text nodes.
 
-### [ ] Iteration 17: Verification and Sibling Symmetrical Healing Exercise
-- **Goal:** Conduct the verification exercise again (comprehensively listing all start-markers inside the sample document, checking their boundary validity, and verifying class mappings). Find any active bugs or mismatches, resolve them, and continue unifying autonomous boundary construction.
+### [x] Iteration 17: Purge Zero-Width Space (ZWS)
+- **Goal:** Completely eliminate Zero-Width Space (`\u200B`) and its validation logic from the parsing and typing flows to simplify marker representation.
+- **Completed Features**:
+  - Removed `SemanticRules.ZWS` completely.
+  - Simplified text-splitting regexes (`HTML_SPLIT_PATTERN`, `FENCE_SPLIT_PATTERN`, and `MARKER_SPLIT_PATTERN`) to no longer expect or use `\u200B`.
+  - Cleaned up converters (`getMarkerFromAST`, `getMarkerFromClass`, `getClass`, and `getClosingMarker`) to handle pure raw strings directly.
+  - Updated the `dataFromKeyboard` setter in `SemanticTag` to parse raw markers directly.
 
-### [ ] Iteration 18: Purging Dynamic `EndMarker` Content Updates
-- **Goal:** Completely eliminate Keystroke-level content updates to the paired `<end-marker>` from `StartMarker.validate()`, as closing markers only need to be populated during Markdown export, simplifying runtime orchestration.
+### [ ] Iteration 18: Line-Parse Based Editor Experimentation (Feature Branch)
+- **Goal:** Experiment with a line-parse-based editor model on a new git feature branch, updating the exited line using AST parsing and diffing.
 
 ## Architecture
 
